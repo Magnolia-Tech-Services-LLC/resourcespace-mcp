@@ -1,0 +1,2 @@
+magnolia_mcp_oauth_token,0,token_hash,1,token_hash,A,0,,,,BTREE,
+magnolia_mcp_oauth_token,1,family,1,family,A,0,,,,BTREE,

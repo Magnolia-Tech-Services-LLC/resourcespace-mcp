@@ -1,0 +1,10 @@
+ref,int(11),NO,PRI,,auto_increment
+token_hash,char(64),NO,UNI,,
+token_type,varchar(16),NO,,,
+userref,int(11),NO,,,
+client_id,varchar(255),NO,,,
+resource,varchar(1024),NO,,,
+scope,varchar(64),NO,,'mcp',
+expires,datetime,NO,,,
+family,varchar(64),NO,,,
+revoked,tinyint(1),NO,,0,

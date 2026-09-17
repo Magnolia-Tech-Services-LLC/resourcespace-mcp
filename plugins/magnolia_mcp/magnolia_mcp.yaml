@@ -1,0 +1,9 @@
+name: magnolia_mcp
+title: MCP Server
+author: Magnolia Tech Services
+version: 1
+desc: MCP server so AI assistants can act as a ResourceSpace user
+category: API
+config_url: /plugins/magnolia_mcp/pages/setup.php
+info_url: /plugins/magnolia_mcp/pages/help.php
+disable_group_select: 1

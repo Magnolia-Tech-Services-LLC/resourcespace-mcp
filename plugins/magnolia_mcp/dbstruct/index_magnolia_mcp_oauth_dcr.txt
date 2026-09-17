@@ -1,0 +1,1 @@
+magnolia_mcp_oauth_dcr,1,ip,1,ip,A,0,,,,BTREE,
