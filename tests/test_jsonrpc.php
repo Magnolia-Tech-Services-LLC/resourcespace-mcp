@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_jsonrpc.php';
+require_once dirname(__DIR__) . '/include/mcp_jsonrpc.php';
 
 $batch = mcp_jsonrpc_decode('[{"jsonrpc":"2.0","method":"ping","id":1}]');
 mcp_test_expect_eq($batch['ok'], false, 'batch rejected');

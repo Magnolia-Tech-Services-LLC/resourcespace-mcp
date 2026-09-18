@@ -1,10 +1,10 @@
 <?php
 
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_jsonrpc.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_auth.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_dispatch.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_catalog.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_tools.php';
+require_once dirname(__DIR__) . '/include/mcp_jsonrpc.php';
+require_once dirname(__DIR__) . '/include/mcp_auth.php';
+require_once dirname(__DIR__) . '/include/mcp_dispatch.php';
+require_once dirname(__DIR__) . '/include/mcp_catalog.php';
+require_once dirname(__DIR__) . '/include/mcp_tools.php';
 
 if (!function_exists('log_activity')) {
     function log_activity($note = null, $log_code = null, $value_new = null, $remote_table = null, $remote_column = null, $remote_ref = null, $ref_column = null, $value_old = null, $user = null, $generate_diff = false)
@@ -14,9 +14,9 @@ if (!function_exists('log_activity')) {
     }
 }
 
-require dirname(__DIR__) . '/plugins/magnolia_mcp/config/catalog_annotations.php';
+require dirname(__DIR__) . '/config/catalog_annotations.php';
 $php = ['api_do_search', 'api_get_resource_data', 'api_get_resource_field_data', 'api_create_resource', 'api_upload_file_by_url', 'api_update_field', 'api_create_collection', 'api_checkperm', 'api_new_user'];
-$cat = mcp_catalog_from_functions($php, $magnolia_mcp_annotations);
+$cat = mcp_catalog_from_functions($php, $resourcespace_mcp_annotations);
 $allow = [
     'resources' => true, 'search' => true, 'collections' => true, 'metadata' => true,
     'users' => false, 'system' => true, 'plugins' => true, 'uncurated' => false,
@@ -44,7 +44,7 @@ mcp_test_expect_eq($r4['isError'], true, 'ssrf blocks upload tool');
 mcp_test_reset_auth_state();
 $key = get_api_key(7);
 $state = [
-    'plugins' => ['magnolia_mcp'],
+    'plugins' => ['resourcespace_mcp'],
     'enable' => true,
     'enable_remote_apis' => true,
     'trust_proxy' => false,
@@ -102,11 +102,11 @@ $from_get = mcp_handle_message(
 );
 mcp_test_expect_eq($from_get['http'], 200, 'handle_message does not 405 GET');
 
-$root_mcp = file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/mcp.php');
+$root_mcp = file_get_contents(dirname(__DIR__) . '/mcp.php');
 mcp_test_expect($root_mcp !== false, 'plugin-root mcp.php exists');
 mcp_test_expect(str_contains((string) $root_mcp, "/pages/mcp.php"), 'plugin-root mcp.php includes pages/mcp.php');
 mcp_test_expect(!str_contains((string) $root_mcp, 'boot.php'), 'plugin-root mcp.php does not boot itself');
-$mcp_src = file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/pages/mcp.php');
+$mcp_src = file_get_contents(dirname(__DIR__) . '/pages/mcp.php');
 mcp_test_expect($mcp_src !== false, 'pages/mcp.php exists');
 $disable_pos = strpos((string) $mcp_src, '$disable_browser_check = true');
 $boot_pos = strpos((string) $mcp_src, 'boot.php');
@@ -114,7 +114,7 @@ $decode_pos = strpos((string) $mcp_src, 'mcp_jsonrpc_decode');
 $get_pos = strpos((string) $mcp_src, "=== 'GET'");
 $delete_pos = strpos((string) $mcp_src, "=== 'DELETE'");
 $accept_pos = strpos((string) $mcp_src, 'mcp_accept_allows_json');
-$plugin_pos = strpos((string) $mcp_src, "in_array('magnolia_mcp'");
+$plugin_pos = strpos((string) $mcp_src, "in_array('resourcespace_mcp'");
 $handle_pos = strpos((string) $mcp_src, 'mcp_handle_message');
 mcp_test_expect($disable_pos !== false && $boot_pos !== false && $disable_pos < $boot_pos, 'disable_browser_check before boot.php');
 mcp_test_expect(str_contains((string) $mcp_src, 'dirname(__DIR__, 3)'), 'pages/mcp.php uses __DIR__ for RS include');
@@ -134,7 +134,7 @@ mcp_test_expect(str_contains((string) $mcp_src, 'getallheaders'), 'mcp.php reads
 $auth_pos = strpos((string) $mcp_src, 'mcp_authorization_header');
 mcp_test_expect($auth_pos !== false && $handle_pos !== false && $auth_pos < $handle_pos, 'mcp.php resolves Authorization before handle_message');
 mcp_test_expect(str_contains((string) $mcp_src, 'mcp_current_allowlist'), 'mcp.php uses mcp_current_allowlist');
-mcp_test_expect(!str_contains((string) $mcp_src, '$magnolia_mcp_allowlist'), 'mcp.php does not use $magnolia_mcp_allowlist');
+mcp_test_expect(!str_contains((string) $mcp_src, '$resourcespace_mcp_allowlist'), 'mcp.php does not use $resourcespace_mcp_allowlist');
 mcp_test_expect(!str_contains((string) $mcp_src, 'authenticate.php'), 'mcp.php does not include authenticate.php');
 
 
@@ -212,7 +212,7 @@ $php_coll = array_merge($php, [
     'api_collection_add_resources',
     'api_collection_remove_resources',
 ]);
-$cat_coll = mcp_catalog_from_functions($php_coll, $magnolia_mcp_annotations);
+$cat_coll = mcp_catalog_from_functions($php_coll, $resourcespace_mcp_annotations);
 $coll_add = mcp_handle_tool('rs_manage_collection', ['action' => 'add', 'collection_ref' => 3, 'resource_refs' => [12]], $cat_coll, $allow);
 mcp_test_expect_eq($coll_add['isError'], false, 'collection add runs');
 mcp_test_expect_eq($GLOBALS['mcp_test_last_query']['function'], 'add_resource_to_collection', 'collection add maps action');
@@ -231,7 +231,7 @@ $exec_ssrf = mcp_handle_tool('rs_execute_action', ['action' => 'upload_file_by_u
 mcp_test_expect_eq($exec_ssrf['isError'], true, 'execute ssrf on upload url');
 
 $php_replace = array_merge($php, ['api_replace_resource_file']);
-$cat_replace = mcp_catalog_from_functions($php_replace, $magnolia_mcp_annotations);
+$cat_replace = mcp_catalog_from_functions($php_replace, $resourcespace_mcp_annotations);
 $exec_replace = mcp_handle_tool(
     'rs_execute_action',
     ['action' => 'replace_resource_file', 'params' => ['ref' => 1, 'file_location' => 'http://127.0.0.1/x']],
@@ -241,7 +241,7 @@ $exec_replace = mcp_handle_tool(
 mcp_test_expect_eq($exec_replace['isError'], true, 'execute ssrf on replace_resource_file file_location');
 
 $php_alt = array_merge($php, ['api_add_alternative_file']);
-$cat_alt = mcp_catalog_from_functions($php_alt, $magnolia_mcp_annotations);
+$cat_alt = mcp_catalog_from_functions($php_alt, $resourcespace_mcp_annotations);
 $exec_alt = mcp_handle_tool(
     'rs_execute_action',
     ['action' => 'add_alternative_file', 'params' => ['resource' => 1, 'name' => 'x', 'file' => 'http://127.0.0.1/x']],
@@ -251,7 +251,7 @@ $exec_alt = mcp_handle_tool(
 mcp_test_expect_eq($exec_alt['isError'], true, 'execute ssrf on add_alternative_file file');
 
 $php_perm = array_merge($php, ['api_get_resource_access', 'api_get_edit_access']);
-$cat_perm = mcp_catalog_from_functions($php_perm, $magnolia_mcp_annotations);
+$cat_perm = mcp_catalog_from_functions($php_perm, $resourcespace_mcp_annotations);
 $allow_users = $allow;
 $allow_users['users'] = true;
 $perm_ok = mcp_handle_tool('rs_check_permissions', ['permission_code' => 's', 'resource_ref' => 12], $cat_perm, $allow_users);

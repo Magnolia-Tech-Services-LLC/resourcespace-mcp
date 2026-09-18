@@ -61,9 +61,9 @@ function mcp_https_ok(array $server, string $baseurl, bool $trust_proxy): bool
 
 function mcp_oauth_machine_json(): void
 {
-    global $baseurl, $magnolia_mcp_trust_proxy;
+    global $baseurl, $resourcespace_mcp_trust_proxy;
     header('Content-Type: application/json');
-    if (!mcp_https_ok($_SERVER, (string) $baseurl, !empty($magnolia_mcp_trust_proxy))) {
+    if (!mcp_https_ok($_SERVER, (string) $baseurl, !empty($resourcespace_mcp_trust_proxy))) {
         http_response_code(403);
         echo json_encode(['error' => 'HTTPS required']);
         exit;

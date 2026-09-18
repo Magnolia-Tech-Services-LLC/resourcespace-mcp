@@ -89,7 +89,7 @@ if (!function_exists('set_sysvar')) {
 if (!function_exists('get_temp_dir')) {
     function get_temp_dir($user = false, $folder = '')
     {
-        $base = sys_get_temp_dir() . '/magnolia_mcp_test_cache';
+        $base = sys_get_temp_dir() . '/resourcespace_mcp_test_cache';
         if (is_string($folder) && $folder !== '') {
             $base .= '/' . $folder;
         }

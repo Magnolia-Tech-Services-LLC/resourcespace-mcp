@@ -11,7 +11,7 @@ if (!mcp_oauth_plugin_enabled()) {
 if (mcp_oauth_is_anonymous_user()) {
     http_response_code(401);
     include '../../../include/header.php';
-    echo '<p>' . escape($lang['magnolia_mcp_oauth_need_account']) . '</p>';
+    echo '<p>' . escape($lang['resourcespace_mcp_oauth_need_account']) . '</p>';
     include '../../../include/footer.php';
     exit;
 }
@@ -25,7 +25,7 @@ if ($is_post) {
     if (!mcp_oauth_posted_csrf_ok()) {
         http_response_code(403);
         include '../../../include/header.php';
-        echo '<p>' . escape($lang['magnolia_mcp_oauth_csrf']) . '</p>';
+        echo '<p>' . escape($lang['resourcespace_mcp_oauth_csrf']) . '</p>';
         include '../../../include/footer.php';
         exit;
     }
@@ -76,14 +76,14 @@ $client = $client_display !== '' ? $client_display : $redirect_host;
 $text = str_replace(
     ['[client]', '[username]'],
     [$client, (string) $username],
-    $lang['magnolia_mcp_oauth_text']
+    $lang['resourcespace_mcp_oauth_text']
 );
 ?>
 <div class="BasicsBox">
-    <h1><?php echo escape($lang['magnolia_mcp_oauth_title']); ?></h1>
+    <h1><?php echo escape($lang['resourcespace_mcp_oauth_title']); ?></h1>
     <p><?php echo escape($text); ?></p>
     <?php if ($redirect_host !== '') { ?>
-    <p><?php echo escape(str_replace('[host]', $redirect_host, $lang['magnolia_mcp_oauth_redirect'])); ?></p>
+    <p><?php echo escape(str_replace('[host]', $redirect_host, $lang['resourcespace_mcp_oauth_redirect'])); ?></p>
     <?php } ?>
     <form method="post" action="">
         <?php generateFormToken("mcp_oauth_authorize"); ?>
@@ -96,8 +96,8 @@ $text = str_replace(
         <input type="hidden" name="scope" value="<?php echo escape($validated['scope']); ?>" />
         <input type="hidden" name="response_type" value="code" />
         <div class="QuestionSubmit">
-            <input type="submit" name="save" value="<?php echo escape($lang['magnolia_mcp_oauth_grant']); ?>" />
-            <input type="submit" name="deny" value="<?php echo escape($lang['magnolia_mcp_oauth_deny']); ?>" />
+            <input type="submit" name="save" value="<?php echo escape($lang['resourcespace_mcp_oauth_grant']); ?>" />
+            <input type="submit" name="deny" value="<?php echo escape($lang['resourcespace_mcp_oauth_deny']); ?>" />
             <div class="clearerleft"></div>
         </div>
     </form>

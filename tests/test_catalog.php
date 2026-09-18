@@ -1,7 +1,7 @@
 <?php
 
-require dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_catalog.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_tools.php';
+require dirname(__DIR__) . '/include/mcp_catalog.php';
+require_once dirname(__DIR__) . '/include/mcp_tools.php';
 
 mcp_test_expect_eq(mcp_catalog_id('api_do_search'), 'do_search', 'strip prefix');
 mcp_test_expect_eq(mcp_catalog_id('do_search'), null, 'non-api ignored');
@@ -10,8 +10,8 @@ mcp_test_expect(in_array('validate_upload_url', mcp_deny_list(), true), 'validat
 mcp_test_expect(in_array('do_report', mcp_deny_list(), true), 'do_report denied');
 
 $php = ['api_do_search', 'api_login', 'api_validate_upload_url', 'api_new_user', 'api_get_resource_data', 'api_mystery_new'];
-require dirname(__DIR__) . '/plugins/magnolia_mcp/config/catalog_annotations.php';
-$cat = mcp_catalog_from_functions($php, $magnolia_mcp_annotations);
+require dirname(__DIR__) . '/config/catalog_annotations.php';
+$cat = mcp_catalog_from_functions($php, $resourcespace_mcp_annotations);
 
 mcp_test_expect(!isset($cat['login']), 'login not in catalog');
 mcp_test_expect(!isset($cat['validate_upload_url']), 'validate_upload_url not in catalog');
@@ -79,14 +79,14 @@ mcp_test_expect_eq(
     'collection action enum'
 );
 
-$GLOBALS['magnolia_mcp_allow_resources'] = true;
-$GLOBALS['magnolia_mcp_allow_search'] = true;
-$GLOBALS['magnolia_mcp_allow_collections'] = true;
-$GLOBALS['magnolia_mcp_allow_metadata'] = true;
-$GLOBALS['magnolia_mcp_allow_users'] = true;
-$GLOBALS['magnolia_mcp_allow_system'] = true;
-$GLOBALS['magnolia_mcp_allow_plugins'] = true;
-$GLOBALS['magnolia_mcp_allow_uncurated'] = false;
+$GLOBALS['resourcespace_mcp_allow_resources'] = true;
+$GLOBALS['resourcespace_mcp_allow_search'] = true;
+$GLOBALS['resourcespace_mcp_allow_collections'] = true;
+$GLOBALS['resourcespace_mcp_allow_metadata'] = true;
+$GLOBALS['resourcespace_mcp_allow_users'] = true;
+$GLOBALS['resourcespace_mcp_allow_system'] = true;
+$GLOBALS['resourcespace_mcp_allow_plugins'] = true;
+$GLOBALS['resourcespace_mcp_allow_uncurated'] = false;
 $from_globals = mcp_current_allowlist();
 mcp_test_expect_eq($from_globals['uncurated'], false, 'allowlist uncurated from global');
 mcp_test_expect_eq($from_globals['search'], true, 'allowlist search from global');
@@ -95,15 +95,15 @@ $built = mcp_build_catalog();
 mcp_test_expect(is_array($built), 'build catalog returns array');
 mcp_test_expect(!isset($built['login']), 'build catalog excludes deny-list');
 
-$catalog_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_catalog.php');
+$catalog_src = (string) file_get_contents(dirname(__DIR__) . '/include/mcp_catalog.php');
 mcp_test_expect(str_contains($catalog_src, 'api_bindings.php'), 'cache key includes api_bindings mtime');
 mcp_test_expect(function_exists('mcp_catalog_cache_path'), 'cache path helper exists');
 mcp_test_expect(function_exists('mcp_catalog_load_cached'), 'cache load helper exists');
 mcp_test_expect(function_exists('mcp_catalog_save_cached'), 'cache save helper exists');
-mcp_test_expect(str_ends_with(mcp_catalog_cache_path(), '/magnolia_mcp_catalog.json'), 'cache lives in temp dir json');
+mcp_test_expect(str_ends_with(mcp_catalog_cache_path(), '/resourcespace_mcp_catalog.json'), 'cache lives in temp dir json');
 
 $GLOBALS['productversion'] = '10.7';
-$GLOBALS['plugins'] = ['magnolia_mcp'];
+$GLOBALS['plugins'] = ['resourcespace_mcp'];
 $cache_path = mcp_catalog_cache_path();
 if (is_file($cache_path)) {
     unlink($cache_path);
@@ -120,8 +120,8 @@ if (is_file($cache_path)) {
     unlink($cache_path);
 }
 
-$tools_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_tools.php');
+$tools_src = (string) file_get_contents(dirname(__DIR__) . '/include/mcp_tools.php');
 mcp_test_expect(str_contains($tools_src, 'mcp_catalog_load_cached'), 'tools load catalog cache after auth');
 mcp_test_expect(str_contains($tools_src, 'mcp_catalog_save_cached'), 'tools save catalog cache after auth');
-$mcp_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/pages/mcp.php');
+$mcp_src = (string) file_get_contents(dirname(__DIR__) . '/pages/mcp.php');
 mcp_test_expect(!str_contains($mcp_src, 'set_plugin_config'), 'mcp.php does not store catalog in plugin config');

@@ -201,7 +201,7 @@ function mcp_oauth_redirect_uri_registrable(string $uri): bool
 
 function mcp_oauth_cimd_cache_path(string $url): string
 {
-    return get_temp_dir(false, 'magnolia_mcp_cimd') . '/' . hash('sha256', $url) . '.json';
+    return get_temp_dir(false, 'resourcespace_mcp_cimd') . '/' . hash('sha256', $url) . '.json';
 }
 
 function mcp_oauth_fetch_cimd(string $url): array
@@ -346,10 +346,10 @@ function mcp_oauth_is_anonymous_user(): bool
 
 function mcp_oauth_plugin_enabled(): bool
 {
-    global $plugins, $magnolia_mcp_enable, $enable_remote_apis;
+    global $plugins, $resourcespace_mcp_enable, $enable_remote_apis;
     return is_array($plugins ?? null)
-        && in_array('magnolia_mcp', $plugins, true)
-        && !empty($magnolia_mcp_enable)
+        && in_array('resourcespace_mcp', $plugins, true)
+        && !empty($resourcespace_mcp_enable)
         && !empty($enable_remote_apis);
 }
 
@@ -385,12 +385,12 @@ function mcp_oauth_return_path_ok(string $uri): bool
     if ($path === '' || str_contains($path, '..')) {
         return false;
     }
-    return str_ends_with($path, '/plugins/magnolia_mcp/pages/oauth_authorize.php');
+    return str_ends_with($path, '/plugins/resourcespace_mcp/pages/oauth_authorize.php');
 }
 
 function mcp_oauth_set_return_cookie(string $uri, int $expires): void
 {
-    setcookie('magnolia_mcp_oauth_return', $uri, [
+    setcookie('resourcespace_mcp_oauth_return', $uri, [
         'expires' => $expires,
         'path' => '/',
         'secure' => true,
@@ -409,7 +409,7 @@ function mcp_oauth_remember_return(string $uri): void
 
 function mcp_oauth_consume_return(): ?string
 {
-    $uri = (string) ($_COOKIE['magnolia_mcp_oauth_return'] ?? '');
+    $uri = (string) ($_COOKIE['resourcespace_mcp_oauth_return'] ?? '');
     mcp_oauth_set_return_cookie('', time() - 3600);
     if (!mcp_oauth_return_path_ok($uri)) {
         return null;

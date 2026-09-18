@@ -1,6 +1,6 @@
 <?php
 
-require dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_auth.php';
+require dirname(__DIR__) . '/include/mcp_auth.php';
 
 mcp_test_reset_auth_state();
 $from_headers = ['authorization' => 'Bearer alice:from-headers'];

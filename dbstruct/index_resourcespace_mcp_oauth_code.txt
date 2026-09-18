@@ -1,0 +1,1 @@
+resourcespace_mcp_oauth_code,0,code_hash,1,code_hash,A,0,,,,BTREE,

@@ -16,10 +16,10 @@ if (!is_array($decoded)) {
     echo json_encode(['error' => 'invalid_request']);
     exit;
 }
-global $magnolia_mcp_trust_proxy;
+global $resourcespace_mcp_trust_proxy;
 $result = mcp_oauth_register(
     $decoded,
-    mcp_oauth_client_ip($_SERVER, !empty($magnolia_mcp_trust_proxy))
+    mcp_oauth_client_ip($_SERVER, !empty($resourcespace_mcp_trust_proxy))
 );
 http_response_code($result['http']);
 echo json_encode($result['body']);

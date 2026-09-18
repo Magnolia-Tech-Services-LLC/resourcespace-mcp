@@ -22,7 +22,7 @@ function mcp_current_allowlist(): array
 {
     $out = [];
     foreach (mcp_categories() as $cat) {
-        $out[$cat] = !empty($GLOBALS['magnolia_mcp_allow_' . $cat]);
+        $out[$cat] = !empty($GLOBALS['resourcespace_mcp_allow_' . $cat]);
     }
     return $out;
 }
@@ -65,12 +65,12 @@ function mcp_catalog_from_functions(array $php_names, array $annotations): array
 function mcp_build_catalog(): array
 {
     require dirname(__DIR__) . '/config/catalog_annotations.php';
-    return mcp_catalog_from_functions(get_defined_functions()['user'], $magnolia_mcp_annotations);
+    return mcp_catalog_from_functions(get_defined_functions()['user'], $resourcespace_mcp_annotations);
 }
 
 function mcp_catalog_cache_path(): string
 {
-    return rtrim(get_temp_dir(false), '/') . '/magnolia_mcp_catalog.json';
+    return rtrim(get_temp_dir(false), '/') . '/resourcespace_mcp_catalog.json';
 }
 
 function mcp_catalog_cache_key(?array $plugins_override = null): string

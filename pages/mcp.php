@@ -23,15 +23,15 @@ $authorization = mcp_authorization_header(
 );
 if ($method === 'GET' || $method === 'HEAD') {
     if ($authorization === null || $authorization === '') {
-        global $plugins, $enable_remote_apis, $baseurl, $magnolia_mcp_enable, $magnolia_mcp_trust_proxy;
-        if (!mcp_https_ok($_SERVER, (string) $baseurl, !empty($magnolia_mcp_trust_proxy))) {
+        global $plugins, $enable_remote_apis, $baseurl, $resourcespace_mcp_enable, $resourcespace_mcp_trust_proxy;
+        if (!mcp_https_ok($_SERVER, (string) $baseurl, !empty($resourcespace_mcp_trust_proxy))) {
             http_response_code(403);
             echo json_encode(mcp_jsonrpc_error(null, -32600, 'HTTPS required'));
             exit;
         }
         if (
-            !in_array('magnolia_mcp', $plugins, true)
-            || empty($magnolia_mcp_enable)
+            !in_array('resourcespace_mcp', $plugins, true)
+            || empty($resourcespace_mcp_enable)
             || empty($enable_remote_apis)
         ) {
             http_response_code(403);
@@ -66,9 +66,9 @@ if (!$decoded['ok']) {
     exit;
 }
 
-global $plugins, $enable_remote_apis, $baseurl, $magnolia_mcp_enable, $magnolia_mcp_trust_proxy;
+global $plugins, $enable_remote_apis, $baseurl, $resourcespace_mcp_enable, $resourcespace_mcp_trust_proxy;
 
-if (!in_array('magnolia_mcp', $plugins, true)) {
+if (!in_array('resourcespace_mcp', $plugins, true)) {
     http_response_code(403);
     echo json_encode(mcp_jsonrpc_error($decoded['request']['id'] ?? null, -32001, 'Plugin not enabled'));
     exit;
@@ -76,9 +76,9 @@ if (!in_array('magnolia_mcp', $plugins, true)) {
 
 $state = [
     'plugins' => $plugins,
-    'enable' => !empty($magnolia_mcp_enable),
+    'enable' => !empty($resourcespace_mcp_enable),
     'enable_remote_apis' => !empty($enable_remote_apis),
-    'trust_proxy' => !empty($magnolia_mcp_trust_proxy),
+    'trust_proxy' => !empty($resourcespace_mcp_trust_proxy),
     'baseurl' => $baseurl,
     'allowlist' => mcp_current_allowlist(),
 ];

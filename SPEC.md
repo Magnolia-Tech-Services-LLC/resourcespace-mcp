@@ -4,7 +4,7 @@
 
 Magnolia Tech Services wants ResourceSpace (Montala's open-source DAM, self-hosted) to speak MCP so Claude can act on the DAM directly — search, upload, tag, manage collections, administer — for whichever instance the plugin is installed on. Connecting requires an existing ResourceSpace user account. Every action runs as that user and is limited by that account's RS permissions (usergroup, `checkperm()`, resource/collection/field access). Three hard constraints shape everything below:
 
-1. **It ships as a native ResourceSpace plugin** (`plugins/magnolia_mcp/`), not a separate hosted service — it runs inside RS's own PHP request lifecycle, connects only to its own instance, and must follow Montala's plugin conventions so it upgrades cleanly with RS core.
+1. **It ships as a native ResourceSpace plugin** (`plugins/resourcespace_mcp/`), not a separate hosted service — it runs inside RS's own PHP request lifecycle, connects only to its own instance, and must follow Montala's plugin conventions so it upgrades cleanly with RS core.
 2. **Tool count must stay flat regardless of API size.** The request was to follow "the Cloudflare MCP method." Research found that's actually Cloudflare's *Code Mode* — a sandboxed JS-code-execution pattern — which is the wrong shape for a PHP plugin with admin-level DB access (new attack surface, new runtime dependency, no payoff over the alternative). The confirmed substitute is a **search + execute** tool pair (the same outcome — flat context cost — implemented in plain PHP, matching Anthropic's own Tool Search Tool pattern and the common MCP "large API surface" tool-design pattern).
 3. **Identity is an RS user, not a service account.** Auth is that user's existing API key (see §5) and, for Claude/ChatGPT/Grok connectors, OAuth 2.1 that ends in the same `setup_user()` path. There is no plugin-level "MCP admin" role and no second permission system.
 
@@ -32,8 +32,8 @@ Magnolia Tech Services wants ResourceSpace (Montala's open-source DAM, self-host
 ### 1. Plugin skeleton (Montala conventions)
 
 ```
-plugins/magnolia_mcp/
-  magnolia_mcp.yaml           # manifest — folder, filename, and name: must match
+plugins/resourcespace_mcp/
+  resourcespace_mcp.yaml           # manifest — folder, filename, and name: must match
   mcp.php                     # MCP endpoint files; public paste URL is {baseurl}/mcp via rewrite
   pages/
     mcp.php                   # the MCP endpoint (bespoke — see §2); also the Montala pages/ alias
@@ -44,7 +44,7 @@ plugins/magnolia_mcp/
     mcp_dispatch.php          # named-param query string → execute_api_call() (see §4)
     mcp_auth.php              # bearer-token check + setup_user (see §5)
   hooks/
-    all.php                   # HookMagnolia_mcpAllExtra_checks
+    all.php                   # HookResourcespace_mcpAllExtra_checks
   config/
     catalog_annotations.php   # hand-curated metadata, keyed by execute_api_call function name (no api_ prefix)
     config.php                # enable-toggle and trusted-proxy defaults
@@ -52,17 +52,17 @@ plugins/magnolia_mcp/
     en.php                    # strings this plugin adds
 ```
 
-`magnolia_mcp.yaml` (values unquoted — RS splits on the first `:`):
+`resourcespace_mcp.yaml` (values unquoted — RS splits on the first `:`):
 
 ```
-name: magnolia_mcp
+name: resourcespace_mcp
 title: MCP Server
 author: Magnolia Tech Services
 version: 1
 desc: MCP server so AI assistants can act as a ResourceSpace user
 category: API
-config_url: /plugins/magnolia_mcp/pages/setup.php
-info_url: /plugins/magnolia_mcp/pages/help.php
+config_url: /plugins/resourcespace_mcp/pages/setup.php
+info_url: /plugins/resourcespace_mcp/pages/help.php
 disable_group_select: 1
 ```
 
@@ -74,7 +74,7 @@ disable_group_select: 1
 2. `include boot.php`.
 3. Same API runtime includes as `api/index.php`: `image_processing.php`, `api_functions.php`, `ajax_functions.php`, `api_bindings.php`, `login_functions.php`, `dash_functions.php`.
 4. This plugin's `include/mcp_*.php`.
-5. If `magnolia_mcp` is not in `$plugins` → HTTP 403, JSON-RPC error, stop. Do **not** call `plugin_activate_for_setup()` here.
+5. If `resourcespace_mcp` is not in `$plugins` → HTTP 403, JSON-RPC error, stop. Do **not** call `plugin_activate_for_setup()` here.
 6. HTTPS check (§2). Fail → HTTP 403, JSON-RPC error.
 7. Method / Accept / body checks (§2): unauthenticated GET/HEAD → 401 + `WWW-Authenticate`; authenticated GET → 405; DELETE → 405; `Accept` missing `application/json` → 406; JSON-RPC batch → 400; parse error → 400.
 8. Bearer auth (§5). Fail → HTTP 401. `setup_user()` happens here, after the plugin-enabled check.
@@ -85,7 +85,7 @@ disable_group_select: 1
 `pages/setup.php` (admin UI):
 
 - `include boot.php` then `authenticate.php`; `checkperm('a')` or exit.
-- If the plugin is not in `$plugins`, call `plugin_activate_for_setup('magnolia_mcp')`.
+- If the plugin is not in `$plugins`, call `plugin_activate_for_setup('resourcespace_mcp')`.
 - CSRF-protected POSTs via RS form tokens (`generateFormToken` / `config_gen_setup_post`).
 - Controls on this page (complete list):
   1. Connector URL (read-only) and link to the in-RS help page.
@@ -93,13 +93,13 @@ disable_group_select: 1
   3. Plugin enable toggle (in addition to `$enable_remote_apis`).
   4. Trusted-proxy toggle (trust `X-Forwarded-Proto`) — **default off**.
   5. Per-category allowlist Yes/No selects (§3) — curated categories default on, `uncurated` default off.
-  6. Origin rewrite snippets: `{baseurl}/mcp` → plugin `mcp.php`, plus `/.well-known/` OAuth discovery. Apache uses `%{REQUEST_URI}` so the same rules work in a vhost or DocumentRoot `.htaccess`. nginx locations belong in the `server` block. Rewrite targets include the `$baseurl` path (where the plugin files live). Origin discovery is still `/.well-known/` on the site root. The paste URL is `{baseurl}/mcp` (the ResourceSpace install URL plus `/mcp`), not a Magnolia-branded plugin path. Existing `/plugins/magnolia_mcp/mcp.php` and `pages/mcp.php` URLs remain resource aliases.
+  6. Origin rewrite snippets: `{baseurl}/mcp` → plugin `mcp.php`, plus `/.well-known/` OAuth discovery. Apache uses `%{REQUEST_URI}` so the same rules work in a vhost or DocumentRoot `.htaccess`. nginx locations belong in the `server` block. Rewrite targets include the `$baseurl` path (where the plugin files live). Origin discovery is still `/.well-known/` on the site root. The paste URL is `{baseurl}/mcp` (the ResourceSpace install URL plus `/mcp`), not a Magnolia-branded plugin path. Existing `/mcp.php` and `pages/mcp.php` URLs remain resource aliases.
   7. Authenticator-app note and revoke-all-tokens button (with confirm).
   8. If this setup request arrived as HTTP with `X-Forwarded-Proto: https` and the reverse-proxy toggle is off, show a warning to enable it.
 - There is **no upload UI** on setup or help. MCP tools still upload (`rs_upload_resource`, `create_resource` with a URL, `pages/mcp_upload.php`).
 - There is **no catalog refresh control**. The catalog cache key includes PHP version, RS version, plugin list, and annotations mtime; a miss rebuilds on the next MCP request.
 
-`hooks/all.php` implements `HookMagnolia_mcpAllExtra_checks`: return FAIL when `$enable_remote_apis` is off, the plugin toggle is off, or the trusted-proxy/HTTPS setup would refuse every request. Keep the hook body trivial — a fatal in `hooks/all.php` takes down the DAM.
+`hooks/all.php` implements `HookResourcespace_mcpAllExtra_checks`: return FAIL when `$enable_remote_apis` is off, the plugin toggle is off, or the trusted-proxy/HTTPS setup would refuse every request. Keep the hook body trivial — a fatal in `hooks/all.php` takes down the DAM.
 
 ### 2. Transport: bespoke endpoint, not `api_bindings.php`
 
@@ -265,7 +265,7 @@ Do not replace `temp_local_download_remote_file()` / `copy()`. Redirect followin
 `rs_create_resource` with `url` uses the same pre-checks, then `create_resource`.
 
 Originals from the user's computer are not JSON-RPC parameters. POST
-`multipart/form-data` to `{baseurl}/plugins/magnolia_mcp/pages/mcp_upload.php`
+`multipart/form-data` to `{baseurl}/plugins/resourcespace_mcp/pages/mcp_upload.php`
 as the same RS user (Bearer). Help.php does not host an upload form.
 
 ### 7. Scope boundary
