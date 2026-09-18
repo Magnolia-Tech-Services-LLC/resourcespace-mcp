@@ -28,13 +28,13 @@ if ($authorization !== null) {
     $server['HTTP_AUTHORIZATION'] = $authorization;
 }
 
-global $plugins, $enable_remote_apis, $baseurl, $magnolia_mcp_enable, $magnolia_mcp_trust_proxy;
+global $plugins, $enable_remote_apis, $baseurl, $resourcespace_mcp_enable, $resourcespace_mcp_trust_proxy;
 
 $state = [
     'plugins' => $plugins,
-    'enable' => !empty($magnolia_mcp_enable),
+    'enable' => !empty($resourcespace_mcp_enable),
     'enable_remote_apis' => !empty($enable_remote_apis),
-    'trust_proxy' => !empty($magnolia_mcp_trust_proxy),
+    'trust_proxy' => !empty($resourcespace_mcp_trust_proxy),
     'baseurl' => $baseurl,
     'allowlist' => mcp_current_allowlist(),
 ];

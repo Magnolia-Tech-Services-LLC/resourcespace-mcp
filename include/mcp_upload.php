@@ -276,7 +276,7 @@ function mcp_upload_handle(array $server, array $post, array $files, array $cook
     $plugins = $plugin_state['plugins'] ?? [];
     if (
         !is_array($plugins)
-        || !in_array('magnolia_mcp', $plugins, true)
+        || !in_array('resourcespace_mcp', $plugins, true)
         || empty($plugin_state['enable'])
         || empty($plugin_state['enable_remote_apis'])
     ) {

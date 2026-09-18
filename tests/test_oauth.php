@@ -1,8 +1,8 @@
 <?php
 
 require_once __DIR__ . '/oauth_store_stub.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_dispatch.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_oauth.php';
+require_once dirname(__DIR__) . '/include/mcp_dispatch.php';
+require_once dirname(__DIR__) . '/include/mcp_oauth.php';
 
 $GLOBALS['baseurl'] = 'https://dam.example';
 mcp_oauth_test_reset_store();
@@ -24,12 +24,12 @@ mcp_test_expect_eq(
 mcp_test_expect_eq(mcp_oauth_effective_resource(null), mcp_oauth_canonical_resource(), 'omitted resource defaults');
 mcp_test_expect_eq(mcp_oauth_effective_resource(''), mcp_oauth_canonical_resource(), 'empty resource defaults');
 mcp_test_expect_eq(
-    mcp_oauth_effective_resource('https://dam.example/plugins/magnolia_mcp/pages/mcp.php'),
+    mcp_oauth_effective_resource('https://dam.example/plugins/resourcespace_mcp/pages/mcp.php'),
     mcp_oauth_canonical_resource(),
     'pages/ path is a resource alias'
 );
 mcp_test_expect_eq(
-    mcp_oauth_effective_resource('https://dam.example/plugins/magnolia_mcp/mcp.php'),
+    mcp_oauth_effective_resource('https://dam.example/plugins/resourcespace_mcp/mcp.php'),
     mcp_oauth_canonical_resource(),
     'plugin-root mcp.php is a resource alias'
 );
@@ -49,7 +49,7 @@ mcp_oauth_insert_code([
     'client_id' => $legacy_client['body']['client_id'],
     'redirect_uri' => 'https://example.com/cb',
     'code_challenge' => mcp_oauth_pkce_s256($verifier),
-    'resource' => 'https://dam.example/plugins/magnolia_mcp/pages/mcp.php',
+    'resource' => 'https://dam.example/plugins/resourcespace_mcp/pages/mcp.php',
     'scope' => 'mcp',
     'expires' => date('Y-m-d H:i:s', time() + 300),
 ]);
@@ -78,7 +78,7 @@ $alias_req_grant = mcp_oauth_token_request([
     'redirect_uri' => 'https://example.com/cb',
     'client_id' => $legacy_client['body']['client_id'],
     'code_verifier' => $verifier,
-    'resource' => 'https://dam.example/plugins/magnolia_mcp/pages/mcp.php',
+    'resource' => 'https://dam.example/plugins/resourcespace_mcp/pages/mcp.php',
 ]);
 mcp_test_expect_eq($alias_req_grant['http'], 200, 'token request pages/ resource matches stored canonical');
 mcp_test_expect_eq(mcp_oauth_effective_resource('https://evil.example/mcp'), null, 'resource mismatch rejected');
@@ -88,7 +88,7 @@ mcp_test_expect_eq(mcp_oauth_normalize_scope('openid mcp extra'), 'mcp', 'mcp pl
 
 $www = mcp_oauth_www_authenticate();
 mcp_test_expect(str_contains($www, 'error="invalid_token"'), 'www-authenticate error');
-mcp_test_expect(str_contains($www, 'resource_metadata="https://dam.example/plugins/magnolia_mcp/pages/oauth_protected_resource.php"'), 'www-authenticate prm');
+mcp_test_expect(str_contains($www, 'resource_metadata="https://dam.example/plugins/resourcespace_mcp/pages/oauth_protected_resource.php"'), 'www-authenticate prm');
 mcp_test_expect(str_contains($www, 'scope="mcp"'), 'www-authenticate scope');
 
 $code = mcp_oauth_random();
@@ -105,32 +105,32 @@ mcp_oauth_insert_code([
 mcp_test_expect_eq(mcp_oauth_consume_code(mcp_oauth_hash($code)), true, 'first consume ok');
 mcp_test_expect_eq(mcp_oauth_consume_code(mcp_oauth_hash($code)), false, 'second consume CAS fails');
 
-$root = dirname(__DIR__) . '/plugins/magnolia_mcp/dbstruct';
+$root = dirname(__DIR__) . '/dbstruct';
 foreach (
     [
-        'table_magnolia_mcp_oauth_client.txt',
-        'index_magnolia_mcp_oauth_client.txt',
-        'table_magnolia_mcp_oauth_code.txt',
-        'index_magnolia_mcp_oauth_code.txt',
-        'table_magnolia_mcp_oauth_token.txt',
-        'index_magnolia_mcp_oauth_token.txt',
-        'table_magnolia_mcp_oauth_dcr.txt',
-        'index_magnolia_mcp_oauth_dcr.txt',
+        'table_resourcespace_mcp_oauth_client.txt',
+        'index_resourcespace_mcp_oauth_client.txt',
+        'table_resourcespace_mcp_oauth_code.txt',
+        'index_resourcespace_mcp_oauth_code.txt',
+        'table_resourcespace_mcp_oauth_token.txt',
+        'index_resourcespace_mcp_oauth_token.txt',
+        'table_resourcespace_mcp_oauth_dcr.txt',
+        'index_resourcespace_mcp_oauth_dcr.txt',
     ] as $f
 ) {
     mcp_test_expect(is_file($root . '/' . $f), $f . ' exists');
 }
-$client_tbl = (string) file_get_contents($root . '/table_magnolia_mcp_oauth_client.txt');
+$client_tbl = (string) file_get_contents($root . '/table_resourcespace_mcp_oauth_client.txt');
 mcp_test_expect(str_contains($client_tbl, "client_name,varchar(255),NO,,'',"), 'client_name quoted default');
-$code_tbl = (string) file_get_contents($root . '/table_magnolia_mcp_oauth_code.txt');
+$code_tbl = (string) file_get_contents($root . '/table_resourcespace_mcp_oauth_code.txt');
 mcp_test_expect(str_contains($code_tbl, "scope,varchar(64),NO,,'mcp',"), 'code scope quoted default');
 mcp_test_expect(str_contains($code_tbl, 'used,tinyint(1),NO,,0,'), 'used default 0');
-$token_tbl = (string) file_get_contents($root . '/table_magnolia_mcp_oauth_token.txt');
+$token_tbl = (string) file_get_contents($root . '/table_resourcespace_mcp_oauth_token.txt');
 mcp_test_expect(str_contains($token_tbl, 'revoked,tinyint(1),NO,,0,'), 'revoked default 0');
-$idx = (string) file_get_contents($root . '/index_magnolia_mcp_oauth_client.txt');
+$idx = (string) file_get_contents($root . '/index_resourcespace_mcp_oauth_client.txt');
 mcp_test_expect(str_contains($idx, ',0,client_id,1,client_id,'), 'unique client_id index');
 
-$cfg = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/config/config.php');
+$cfg = (string) file_get_contents(dirname(__DIR__) . '/config/config.php');
 foreach (
     [
         'mcp',
@@ -147,7 +147,7 @@ foreach (
     mcp_test_expect(str_contains($cfg, "'" . $page . "'") || str_contains($cfg, '"' . $page . '"'), 'CSRF exempt ' . $page);
 }
 
-$amp_qs = 'response_type=code&amp%3Bclient_id=https%3A%2F%2Fclaude.ai%2Foauth%2Fmcp-oauth-client-metadata&amp%3Bredirect_uri=https%3A%2F%2Fclaude.ai%2Fapi%2Fmcp%2Fauth_callback&amp%3Bcode_challenge=abc&amp%3Bcode_challenge_method=S256&amp%3Bstate=st&amp%3Bscope=mcp&amp%3Bresource=https%3A%2F%2Fdam.example%2Fplugins%2Fmagnolia_mcp%2Fmcp.php';
+$amp_qs = 'response_type=code&amp%3Bclient_id=https%3A%2F%2Fclaude.ai%2Foauth%2Fmcp-oauth-client-metadata&amp%3Bredirect_uri=https%3A%2F%2Fclaude.ai%2Fapi%2Fmcp%2Fauth_callback&amp%3Bcode_challenge=abc&amp%3Bcode_challenge_method=S256&amp%3Bstate=st&amp%3Bscope=mcp&amp%3Bresource=https%3A%2F%2Fdam.example%2Fplugins%2Fresourcespace_mcp%2Fmcp.php';
 $amp_parsed = mcp_oauth_parse_query_string($amp_qs);
 mcp_test_expect_eq($amp_parsed['client_id'] ?? null, 'https://claude.ai/oauth/mcp-oauth-client-metadata', 'login htmlspecialchars ampersands recover client_id');
 mcp_test_expect_eq($amp_parsed['redirect_uri'] ?? null, 'https://claude.ai/api/mcp/auth_callback', 'login htmlspecialchars ampersands recover redirect_uri');
@@ -159,17 +159,17 @@ mcp_test_expect_eq($clean_parsed['client_id'] ?? null, 'https://claude.ai/oauth/
 $amp_params = mcp_oauth_authorize_params(['response_type' => 'code'], [], $amp_qs);
 mcp_test_expect_eq($amp_params['client_id'] ?? null, 'https://claude.ai/oauth/mcp-oauth-client-metadata', 'authorize params prefer repaired QUERY_STRING');
 
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/hooks/all.php';
-mcp_test_expect_eq(HookMagnolia_mcpAllBeforetermsredirect(), ['oauth_authorize'], 'terms skip authorize');
+require_once dirname(__DIR__) . '/hooks/all.php';
+mcp_test_expect_eq(HookResourcespace_mcpAllBeforetermsredirect(), ['oauth_authorize'], 'terms skip authorize');
 
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_jsonrpc.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_auth.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_catalog.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_tools.php';
+require_once dirname(__DIR__) . '/include/mcp_jsonrpc.php';
+require_once dirname(__DIR__) . '/include/mcp_auth.php';
+require_once dirname(__DIR__) . '/include/mcp_catalog.php';
+require_once dirname(__DIR__) . '/include/mcp_tools.php';
 
 mcp_test_reset_auth_state();
 $state = [
-    'plugins' => ['magnolia_mcp'],
+    'plugins' => ['resourcespace_mcp'],
     'enable' => true,
     'enable_remote_apis' => true,
     'trust_proxy' => false,
@@ -200,8 +200,8 @@ $https_fail = mcp_handle_message(
 mcp_test_expect_eq($https_fail['http'], 403, 'https fail 403');
 mcp_test_expect(($https_fail['headers'] ?? []) === [], '403 has no WWW-Authenticate');
 
-$prm = dirname(__DIR__) . '/plugins/magnolia_mcp/pages/oauth_protected_resource.php';
-$as = dirname(__DIR__) . '/plugins/magnolia_mcp/pages/oauth_authorization_server.php';
+$prm = dirname(__DIR__) . '/pages/oauth_protected_resource.php';
+$as = dirname(__DIR__) . '/pages/oauth_authorization_server.php';
 mcp_test_expect(is_file($prm), 'PRM page exists');
 mcp_test_expect(is_file($as), 'AS metadata page exists');
 $prm_src = (string) file_get_contents($prm);
@@ -214,7 +214,7 @@ mcp_test_expect(str_contains($as_src, 'client_id_metadata_document_supported'), 
 mcp_test_expect(str_contains($as_src, '"none"'), 'AS advertises token auth none');
 mcp_test_expect(!str_contains($prm_src, 'offline_access'), 'PRM does not list offline_access');
 
-$mcp_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/pages/mcp.php');
+$mcp_src = (string) file_get_contents(dirname(__DIR__) . '/pages/mcp.php');
 mcp_test_expect(str_contains($mcp_src, "=== 'HEAD'"), 'mcp.php handles HEAD');
 mcp_test_expect(str_contains($mcp_src, 'mcp_oauth_www_authenticate'), 'mcp.php sets WWW-Authenticate');
 mcp_test_expect(preg_match("/GET.*401|401.*GET/s", $mcp_src) === 1 || str_contains($mcp_src, 'invalid_token'), 'unauthenticated GET is 401 path');
@@ -225,7 +225,7 @@ mcp_test_expect(
     $get_pos !== false && $https_pos !== false && $www_pos !== false && $get_pos < $https_pos && $https_pos < $www_pos,
     'GET HTTPS 403 before WWW-Authenticate 401'
 );
-mcp_test_expect(str_contains($mcp_src, '$baseurl') && str_contains($mcp_src, '$magnolia_mcp_trust_proxy'), 'GET HTTPS uses same baseurl/trust_proxy as POST');
+mcp_test_expect(str_contains($mcp_src, '$baseurl') && str_contains($mcp_src, '$resourcespace_mcp_trust_proxy'), 'GET HTTPS uses same baseurl/trust_proxy as POST');
 
 mcp_test_reset_auth_state();
 mcp_oauth_test_reset_store();
@@ -281,10 +281,10 @@ mcp_test_expect_eq(mcp_cimd_url_allowed('https://10.0.0.5/meta.json')['ok'], fal
 mcp_test_expect_eq(mcp_cimd_url_allowed('http://claude.ai/meta.json')['ok'], false, 'CIMD http rejected');
 mcp_test_expect_eq(mcp_cimd_url_allowed('https://claude.ai/meta.json')['ok'], true, 'CIMD public hostname allowed without live DNS');
 
-$auth_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_auth.php');
+$auth_src = (string) file_get_contents(dirname(__DIR__) . '/include/mcp_auth.php');
 mcp_test_expect(str_contains($auth_src, 'mcp_oauth_store.php'), 'auth includes oauth store');
 mcp_test_expect(!str_contains($auth_src, 'mcp_oauth.php'), 'auth does not include oauth protocol');
-$oauth_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_oauth.php');
+$oauth_src = (string) file_get_contents(dirname(__DIR__) . '/include/mcp_oauth.php');
 mcp_test_expect(!str_contains($oauth_src, 'mcp_jsonrpc.php'), 'oauth protocol does not include jsonrpc');
 mcp_test_expect(str_contains($oauth_src, 'mcp_oauth_store.php'), 'oauth protocol includes store');
 mcp_test_expect(str_contains($oauth_src, 'mcp_dispatch.php'), 'oauth protocol includes dispatch');
@@ -361,7 +361,7 @@ for ($i = 0; $i < 20; $i++) {
 $limited = mcp_oauth_register(['redirect_uris' => ['https://grok.x.ai/cb'], 'token_endpoint_auth_method' => 'none'], '198.51.100.2');
 mcp_test_expect_eq($limited['http'], 429, 'DCR rate limit 20/ip/hour');
 
-$reg_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/pages/oauth_register.php');
+$reg_src = (string) file_get_contents(dirname(__DIR__) . '/pages/oauth_register.php');
 mcp_test_expect(str_contains($reg_src, '$disable_browser_check = true'), 'register disables browser check');
 mcp_test_expect(!str_contains($reg_src, 'authenticate.php'), 'register no authenticate');
 
@@ -381,7 +381,7 @@ mcp_test_expect(!str_contains($loc, 'https://dam.example/https://'), 'grant is n
 $deny = mcp_oauth_deny_location('https://example.com/cb', 'st');
 mcp_test_expect(str_contains($deny, 'error=access_denied'), 'deny error');
 
-$authz_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/pages/oauth_authorize.php');
+$authz_src = (string) file_get_contents(dirname(__DIR__) . '/pages/oauth_authorize.php');
 mcp_test_expect(str_contains($authz_src, 'authenticate.php'), 'authorize includes authenticate');
 mcp_test_expect(!str_contains($authz_src, 'CentralSpacePost'), 'authorize is not CentralSpace AJAX');
 mcp_test_expect(!str_contains($authz_src, 'onsubmit'), 'authorize has no onsubmit');
@@ -391,13 +391,13 @@ mcp_test_expect(str_contains($authz_src, 'generateFormToken("mcp_oauth_authorize
 mcp_test_expect(str_contains($authz_src, 'mcp_oauth_posted_csrf_ok'), 'authorize validates CSRF token');
 mcp_test_expect(str_contains($oauth_src, 'isValidCSRFToken'), 'consent CSRF uses isValidCSRFToken');
 mcp_test_expect(str_contains($authz_src, 'mcp_oauth_plugin_enabled'), 'authorize requires plugin enable');
-mcp_test_expect(str_contains($authz_src, 'magnolia_mcp_oauth_redirect'), 'authorize shows redirect host');
+mcp_test_expect(str_contains($authz_src, 'resourcespace_mcp_oauth_redirect'), 'authorize shows redirect host');
 mcp_test_expect(str_contains($authz_src, 'mcp_oauth_remember_return'), 'authorize remembers TOTP return');
 mcp_test_expect(str_contains($authz_src, 'enforcePostRequest'), 'authorize POST enforced');
 mcp_test_expect(!str_contains($authz_src, '$disable_browser_check'), 'authorize is a browser page');
 mcp_test_expect(str_contains($authz_src, "str_replace"), 'authorize fills consent placeholders');
 mcp_test_expect(!str_contains($authz_src, 'echo escape((string) $username)'), 'authorize does not dump username alone');
-$en = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/languages/en.php');
+$en = (string) file_get_contents(dirname(__DIR__) . '/languages/en.php');
 mcp_test_expect(str_contains($en, "'Grant access'"), 'consent title is Grant access');
 mcp_test_expect(str_contains($en, "'MCP Server'"), 'plugin display name is MCP Server');
 mcp_test_expect(str_contains($en, '[client]'), 'consent text has client placeholder');
@@ -426,7 +426,7 @@ $q_pages = mcp_oauth_validate_authorize_request([
     'code_challenge' => mcp_oauth_pkce_s256('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012'),
     'code_challenge_method' => 'S256',
     'state' => 'st',
-    'resource' => 'https://dam.example/plugins/magnolia_mcp/pages/mcp.php',
+    'resource' => 'https://dam.example/plugins/resourcespace_mcp/pages/mcp.php',
 ]);
 mcp_test_expect_eq($q_pages['ok'], true, 'authorize accepts pages/ resource alias');
 mcp_test_expect_eq($q_pages['resource'], mcp_oauth_canonical_resource(), 'authorize stores canonical resource');
@@ -591,7 +591,7 @@ $ttl_first = mcp_oauth_token_request([
 ]);
 mcp_test_expect_eq($ttl_first['http'], 200, 'used-after-ttl first redeem 200');
 $ttl_hash = mcp_oauth_hash($ttl_code);
-foreach ($GLOBALS['mcp_oauth_test_db']['magnolia_mcp_oauth_code'] as &$ttl_row) {
+foreach ($GLOBALS['mcp_oauth_test_db']['resourcespace_mcp_oauth_code'] as &$ttl_row) {
     if ($ttl_row['code_hash'] === $ttl_hash) {
         $ttl_row['expires'] = date('Y-m-d H:i:s', time() - 60);
     }
@@ -616,7 +616,7 @@ mcp_test_expect_eq(
     'expired used code still revokes access'
 );
 
-$token_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/pages/oauth_token.php');
+$token_src = (string) file_get_contents(dirname(__DIR__) . '/pages/oauth_token.php');
 mcp_test_expect(str_contains($token_src, '$disable_browser_check = true'), 'token disables browser check');
 mcp_test_expect(!str_contains($token_src, 'authenticate.php'), 'token no authenticate');
 mcp_test_expect(str_contains($token_src, 'mcp_oauth_machine_json'), 'token uses machine json helper');
@@ -643,14 +643,14 @@ $omit = mcp_oauth_token_request([
 ]);
 mcp_test_expect_eq($omit['http'], 200, 'omitted resource grant 200');
 
-$setup_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/pages/setup.php');
+$setup_src = (string) file_get_contents(dirname(__DIR__) . '/pages/setup.php');
 mcp_test_expect(str_contains($setup_src, 'mcp_oauth_canonical_resource'), 'setup shows resource URL');
 mcp_test_expect(str_contains($setup_src, 'oauth-authorization-server'), 'setup shows Apache rewrite snippet');
 mcp_test_expect(!str_contains($setup_src, '[R=301,L]'), 'setup Apache snippet does not 301 /mcp/');
 mcp_test_expect(str_contains($setup_src, 'location = '), 'setup nginx snippet has exact /mcp location');
 mcp_test_expect(str_contains($setup_src, 'revoke'), 'setup has revoke');
 mcp_test_expect(str_contains($setup_src, 'enforcePostRequest'), 'revoke is POST');
-$en = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/languages/en.php');
+$en = (string) file_get_contents(dirname(__DIR__) . '/languages/en.php');
 mcp_test_expect(str_contains($en, 'TOTP') || str_contains($en, 'Authenticator'), 'TOTP return documented');
 
 mcp_oauth_test_reset_store();
@@ -712,37 +712,37 @@ mcp_test_expect(
     'leftover expired code does not revoke later grant'
 );
 
-$deny = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_catalog.php');
+$deny = (string) file_get_contents(dirname(__DIR__) . '/include/mcp_catalog.php');
 mcp_test_expect(str_contains($deny, "'login'"), 'login remains deny-listed');
 mcp_test_expect(str_contains($deny, 'rename($tmp, $path)'), 'catalog cache write is atomic');
 
 mcp_test_expect_eq(
     mcp_oauth_plugin_resource(),
-    'https://dam.example/plugins/magnolia_mcp/mcp.php',
+    'https://dam.example/plugins/resourcespace_mcp/mcp.php',
     'plugin-root resource URL'
 );
 mcp_test_expect_eq(mcp_oauth_plugin_enabled(), false, 'plugin_enabled false without globals');
-$GLOBALS['plugins'] = ['magnolia_mcp'];
-$GLOBALS['magnolia_mcp_enable'] = true;
+$GLOBALS['plugins'] = ['resourcespace_mcp'];
+$GLOBALS['resourcespace_mcp_enable'] = true;
 $GLOBALS['enable_remote_apis'] = true;
 mcp_test_expect_eq(mcp_oauth_plugin_enabled(), true, 'plugin_enabled true when toggles on');
 mcp_test_expect_eq(mcp_oauth_client_ip(['REMOTE_ADDR' => '203.0.113.9'], false), '203.0.113.9', 'DCR IP uses REMOTE_ADDR when trust-proxy off');
-mcp_test_expect_eq(mcp_oauth_return_path_ok('/plugins/magnolia_mcp/pages/oauth_authorize.php?x=1'), true, 'authorize return path ok');
-mcp_test_expect_eq(mcp_oauth_return_path_ok('/rs/plugins/magnolia_mcp/pages/oauth_authorize.php'), true, 'subdirectory authorize return ok');
+mcp_test_expect_eq(mcp_oauth_return_path_ok('/plugins/resourcespace_mcp/pages/oauth_authorize.php?x=1'), true, 'authorize return path ok');
+mcp_test_expect_eq(mcp_oauth_return_path_ok('/rs/plugins/resourcespace_mcp/pages/oauth_authorize.php'), true, 'subdirectory authorize return ok');
 mcp_test_expect_eq(mcp_oauth_return_path_ok('https://evil.example/'), false, 'absolute return URL rejected');
 mcp_test_expect_eq(
-    mcp_oauth_return_path_ok('//evil.example/plugins/magnolia_mcp/pages/oauth_authorize.php'),
+    mcp_oauth_return_path_ok('//evil.example/plugins/resourcespace_mcp/pages/oauth_authorize.php'),
     false,
     'protocol-relative return rejected'
 );
-mcp_test_expect_eq(mcp_oauth_return_path_ok('/pages/home.php'), false, 'non-authorize return rejected');
+mcp_test_expect_eq(mcp_oauth_return_path_ok('/plugins/resourcespace_mcp/pages/home.php'), false, 'non-authorize return rejected');
 mcp_test_expect_eq(
-    mcp_oauth_return_path_ok('/plugins/magnolia_mcp/pages/oauth_authorize.php/../evil'),
+    mcp_oauth_return_path_ok('/plugins/resourcespace_mcp/pages/oauth_authorize.php/../evil'),
     false,
     'dot-dot return rejected'
 );
 
-$reg_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/pages/oauth_register.php');
+$reg_src = (string) file_get_contents(dirname(__DIR__) . '/pages/oauth_register.php');
 mcp_test_expect(str_contains($reg_src, 'mcp_oauth_client_ip'), 'register uses trust-proxy-aware IP');
 mcp_test_expect(!str_contains($reg_src, 'get_ip()'), 'register does not call get_ip when trust-proxy off');
 
@@ -761,7 +761,7 @@ mcp_oauth_insert_token([
 mcp_oauth_purge_expired();
 mcp_test_expect_eq(mcp_oauth_lookup_access(mcp_oauth_hash('oldtok')), null, 'purge removes expired access token');
 
-$up_src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_upload.php');
+$up_src = (string) file_get_contents(dirname(__DIR__) . '/include/mcp_upload.php');
 mcp_test_expect(str_contains($up_src, "mcp_upload_api('get_resource_data'"), 'upload uses API get_resource_data');
 mcp_test_expect(!preg_match('/get_resource_data\(\$ref\)/', $up_src), 'upload does not call core get_resource_data');
 

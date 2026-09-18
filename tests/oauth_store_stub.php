@@ -3,14 +3,14 @@
 function mcp_oauth_test_reset_store(): void
 {
     $GLOBALS['mcp_oauth_test_db'] = [
-        'magnolia_mcp_oauth_client' => [],
-        'magnolia_mcp_oauth_code' => [],
-        'magnolia_mcp_oauth_token' => [],
-        'magnolia_mcp_oauth_dcr' => [],
+        'resourcespace_mcp_oauth_client' => [],
+        'resourcespace_mcp_oauth_code' => [],
+        'resourcespace_mcp_oauth_token' => [],
+        'resourcespace_mcp_oauth_dcr' => [],
     ];
     $GLOBALS['mcp_oauth_test_next_ref'] = 1;
     $GLOBALS['mcp_test_affected'] = 0;
-    $dir = get_temp_dir(false, 'magnolia_mcp_cimd');
+    $dir = get_temp_dir(false, 'resourcespace_mcp_cimd');
     if (is_dir($dir)) {
         foreach (scandir($dir) as $name) {
             if ($name === '.' || $name === '..') {
@@ -46,8 +46,8 @@ if (!function_exists('ps_query')) {
         $sql = trim((string) $sql);
         $GLOBALS['mcp_test_affected'] = 0;
 
-        if (stripos($sql, 'INSERT INTO magnolia_mcp_oauth_client') === 0) {
-            $db['magnolia_mcp_oauth_client'][] = [
+        if (stripos($sql, 'INSERT INTO resourcespace_mcp_oauth_client') === 0) {
+            $db['resourcespace_mcp_oauth_client'][] = [
                 'ref' => $GLOBALS['mcp_oauth_test_next_ref']++,
                 'client_id' => (string) $vals[0],
                 'client_name' => (string) $vals[1],
@@ -57,16 +57,16 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = 1;
             return [];
         }
-        if (stripos($sql, 'SELECT client_id, client_name, redirect_uris FROM magnolia_mcp_oauth_client') === 0) {
-            foreach ($db['magnolia_mcp_oauth_client'] as $row) {
+        if (stripos($sql, 'SELECT client_id, client_name, redirect_uris FROM resourcespace_mcp_oauth_client') === 0) {
+            foreach ($db['resourcespace_mcp_oauth_client'] as $row) {
                 if ($row['client_id'] === (string) $vals[0]) {
                     return [$row];
                 }
             }
             return [];
         }
-        if (stripos($sql, 'INSERT INTO magnolia_mcp_oauth_code') === 0) {
-            $db['magnolia_mcp_oauth_code'][] = [
+        if (stripos($sql, 'INSERT INTO resourcespace_mcp_oauth_code') === 0) {
+            $db['resourcespace_mcp_oauth_code'][] = [
                 'ref' => $GLOBALS['mcp_oauth_test_next_ref']++,
                 'code_hash' => (string) $vals[0],
                 'userref' => (int) $vals[1],
@@ -81,18 +81,18 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = 1;
             return [];
         }
-        if (stripos($sql, 'SELECT ref, code_hash, userref, client_id, redirect_uri, code_challenge, resource, scope, expires, used FROM magnolia_mcp_oauth_code') === 0) {
-            foreach ($db['magnolia_mcp_oauth_code'] as $row) {
+        if (stripos($sql, 'SELECT ref, code_hash, userref, client_id, redirect_uri, code_challenge, resource, scope, expires, used FROM resourcespace_mcp_oauth_code') === 0) {
+            foreach ($db['resourcespace_mcp_oauth_code'] as $row) {
                 if ($row['code_hash'] === (string) $vals[0]) {
                     return [$row];
                 }
             }
             return [];
         }
-        if (stripos($sql, 'UPDATE magnolia_mcp_oauth_code SET expires') === 0) {
+        if (stripos($sql, 'UPDATE resourcespace_mcp_oauth_code SET expires') === 0) {
             $by_user = stripos($sql, 'userref') !== false;
             $n = 0;
-            foreach ($db['magnolia_mcp_oauth_code'] as &$row) {
+            foreach ($db['resourcespace_mcp_oauth_code'] as &$row) {
                 if ((int) $row['used'] !== 0) {
                     continue;
                 }
@@ -106,9 +106,9 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = $n;
             return [];
         }
-        if (stripos($sql, 'UPDATE magnolia_mcp_oauth_code SET used = 1') === 0) {
+        if (stripos($sql, 'UPDATE resourcespace_mcp_oauth_code SET used = 1') === 0) {
             $n = 0;
-            foreach ($db['magnolia_mcp_oauth_code'] as &$row) {
+            foreach ($db['resourcespace_mcp_oauth_code'] as &$row) {
                 if (
                     $row['code_hash'] === (string) $vals[0]
                     && (int) $row['used'] === 0
@@ -122,8 +122,8 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = $n;
             return [];
         }
-        if (stripos($sql, 'INSERT INTO magnolia_mcp_oauth_token') === 0) {
-            $db['magnolia_mcp_oauth_token'][] = [
+        if (stripos($sql, 'INSERT INTO resourcespace_mcp_oauth_token') === 0) {
+            $db['resourcespace_mcp_oauth_token'][] = [
                 'ref' => $GLOBALS['mcp_oauth_test_next_ref']++,
                 'token_hash' => (string) $vals[0],
                 'token_type' => (string) $vals[1],
@@ -138,16 +138,16 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = 1;
             return [];
         }
-        if (stripos($sql, 'SELECT ref, token_hash, token_type, userref, client_id, resource, scope, expires, family, revoked FROM magnolia_mcp_oauth_token') === 0) {
-            foreach ($db['magnolia_mcp_oauth_token'] as $row) {
+        if (stripos($sql, 'SELECT ref, token_hash, token_type, userref, client_id, resource, scope, expires, family, revoked FROM resourcespace_mcp_oauth_token') === 0) {
+            foreach ($db['resourcespace_mcp_oauth_token'] as $row) {
                 if ($row['token_hash'] === (string) $vals[0] && $row['token_type'] === (string) $vals[1]) {
                     return [$row];
                 }
             }
             return [];
         }
-        if (stripos($sql, "SELECT userref, client_id, resource, scope, expires, revoked FROM magnolia_mcp_oauth_token") === 0) {
-            foreach ($db['magnolia_mcp_oauth_token'] as $row) {
+        if (stripos($sql, "SELECT userref, client_id, resource, scope, expires, revoked FROM resourcespace_mcp_oauth_token") === 0) {
+            foreach ($db['resourcespace_mcp_oauth_token'] as $row) {
                 if (
                     $row['token_hash'] === (string) $vals[0]
                     && $row['token_type'] === 'access'
@@ -159,11 +159,11 @@ if (!function_exists('ps_query')) {
             }
             return [];
         }
-        if (stripos($sql, "UPDATE magnolia_mcp_oauth_token SET revoked = 1 WHERE token_hash = ? AND token_type = 'refresh' AND revoked = 0") === 0
-            || (stripos($sql, 'UPDATE magnolia_mcp_oauth_token SET revoked = 1 WHERE token_hash') === 0 && stripos($sql, 'refresh') !== false)
+        if (stripos($sql, "UPDATE resourcespace_mcp_oauth_token SET revoked = 1 WHERE token_hash = ? AND token_type = 'refresh' AND revoked = 0") === 0
+            || (stripos($sql, 'UPDATE resourcespace_mcp_oauth_token SET revoked = 1 WHERE token_hash') === 0 && stripos($sql, 'refresh') !== false)
         ) {
             $n = 0;
-            foreach ($db['magnolia_mcp_oauth_token'] as &$row) {
+            foreach ($db['resourcespace_mcp_oauth_token'] as &$row) {
                 if ($row['token_hash'] === (string) $vals[0] && $row['token_type'] === 'refresh' && (int) $row['revoked'] === 0) {
                     $row['revoked'] = 1;
                     $n++;
@@ -173,9 +173,9 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = $n;
             return [];
         }
-        if (stripos($sql, 'UPDATE magnolia_mcp_oauth_token SET revoked = 1 WHERE userref = ? AND client_id = ?') === 0) {
+        if (stripos($sql, 'UPDATE resourcespace_mcp_oauth_token SET revoked = 1 WHERE userref = ? AND client_id = ?') === 0) {
             $n = 0;
-            foreach ($db['magnolia_mcp_oauth_token'] as &$row) {
+            foreach ($db['resourcespace_mcp_oauth_token'] as &$row) {
                 if (
                     (int) $row['userref'] === (int) $vals[0]
                     && $row['client_id'] === (string) $vals[1]
@@ -189,9 +189,9 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = $n;
             return [];
         }
-        if (stripos($sql, 'UPDATE magnolia_mcp_oauth_token SET revoked = 1 WHERE userref = ? AND revoked = 0') === 0) {
+        if (stripos($sql, 'UPDATE resourcespace_mcp_oauth_token SET revoked = 1 WHERE userref = ? AND revoked = 0') === 0) {
             $n = 0;
-            foreach ($db['magnolia_mcp_oauth_token'] as &$row) {
+            foreach ($db['resourcespace_mcp_oauth_token'] as &$row) {
                 if ((int) $row['userref'] === (int) $vals[0] && (int) $row['revoked'] === 0) {
                     $row['revoked'] = 1;
                     $n++;
@@ -201,44 +201,44 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = $n;
             return [];
         }
-        if (stripos($sql, 'DELETE FROM magnolia_mcp_oauth_code') === 0) {
+        if (stripos($sql, 'DELETE FROM resourcespace_mcp_oauth_code') === 0) {
             $keep = [];
-            foreach ($db['magnolia_mcp_oauth_code'] as $row) {
+            foreach ($db['resourcespace_mcp_oauth_code'] as $row) {
                 $purge = isset($vals[0]) && $row['expires'] < (string) $vals[0] && (int) $row['used'] === 0;
                 if (!$purge) {
                     $keep[] = $row;
                 }
             }
-            $db['magnolia_mcp_oauth_code'] = $keep;
+            $db['resourcespace_mcp_oauth_code'] = $keep;
             return [];
         }
-        if (stripos($sql, 'DELETE FROM magnolia_mcp_oauth_token') === 0) {
+        if (stripos($sql, 'DELETE FROM resourcespace_mcp_oauth_token') === 0) {
             $keep = [];
-            foreach ($db['magnolia_mcp_oauth_token'] as $row) {
+            foreach ($db['resourcespace_mcp_oauth_token'] as $row) {
                 $purge = isset($vals[0]) && $row['expires'] < (string) $vals[0] && (int) $row['revoked'] === 0;
                 if (!$purge) {
                     $keep[] = $row;
                 }
             }
-            $db['magnolia_mcp_oauth_token'] = $keep;
+            $db['resourcespace_mcp_oauth_token'] = $keep;
             return [];
         }
-        if (stripos($sql, 'DELETE FROM magnolia_mcp_oauth_dcr') === 0) {
+        if (stripos($sql, 'DELETE FROM resourcespace_mcp_oauth_dcr') === 0) {
             $keep = [];
-            foreach ($db['magnolia_mcp_oauth_dcr'] as $row) {
+            foreach ($db['resourcespace_mcp_oauth_dcr'] as $row) {
                 if ($row['created'] >= (string) $vals[0]) {
                     $keep[] = $row;
                 }
             }
-            $db['magnolia_mcp_oauth_dcr'] = $keep;
+            $db['resourcespace_mcp_oauth_dcr'] = $keep;
             return [];
         }
         if (stripos($sql, 'DROP TABLE IF EXISTS') === 0) {
             return [];
         }
-        if (stripos($sql, 'UPDATE magnolia_mcp_oauth_token SET revoked = 1 WHERE family = ?') === 0) {
+        if (stripos($sql, 'UPDATE resourcespace_mcp_oauth_token SET revoked = 1 WHERE family = ?') === 0) {
             $n = 0;
-            foreach ($db['magnolia_mcp_oauth_token'] as &$row) {
+            foreach ($db['resourcespace_mcp_oauth_token'] as &$row) {
                 if ($row['family'] === (string) $vals[0] && (int) $row['revoked'] === 0) {
                     $row['revoked'] = 1;
                     $n++;
@@ -248,9 +248,9 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = $n;
             return [];
         }
-        if (stripos($sql, 'UPDATE magnolia_mcp_oauth_token SET revoked = 1 WHERE revoked = 0') === 0) {
+        if (stripos($sql, 'UPDATE resourcespace_mcp_oauth_token SET revoked = 1 WHERE revoked = 0') === 0) {
             $n = 0;
-            foreach ($db['magnolia_mcp_oauth_token'] as &$row) {
+            foreach ($db['resourcespace_mcp_oauth_token'] as &$row) {
                 if ((int) $row['revoked'] === 0) {
                     $row['revoked'] = 1;
                     $n++;
@@ -260,8 +260,8 @@ if (!function_exists('ps_query')) {
             $GLOBALS['mcp_test_affected'] = $n;
             return [];
         }
-        if (stripos($sql, 'INSERT INTO magnolia_mcp_oauth_dcr') === 0) {
-            $db['magnolia_mcp_oauth_dcr'][] = [
+        if (stripos($sql, 'INSERT INTO resourcespace_mcp_oauth_dcr') === 0) {
+            $db['resourcespace_mcp_oauth_dcr'][] = [
                 'ref' => $GLOBALS['mcp_oauth_test_next_ref']++,
                 'ip' => (string) $vals[0],
                 'created' => (string) $vals[1],
@@ -278,9 +278,9 @@ if (!function_exists('ps_value')) {
     {
         $vals = mcp_oauth_test_values(is_array($params) ? $params : []);
         $sql = trim((string) $sql);
-        if (stripos($sql, 'SELECT COUNT(*) AS value FROM magnolia_mcp_oauth_dcr') === 0) {
+        if (stripos($sql, 'SELECT COUNT(*) AS value FROM resourcespace_mcp_oauth_dcr') === 0) {
             $n = 0;
-            foreach ($GLOBALS['mcp_oauth_test_db']['magnolia_mcp_oauth_dcr'] as $row) {
+            foreach ($GLOBALS['mcp_oauth_test_db']['resourcespace_mcp_oauth_dcr'] as $row) {
                 if ($row['ip'] === (string) $vals[0] && $row['created'] > (string) $vals[1]) {
                     $n++;
                 }

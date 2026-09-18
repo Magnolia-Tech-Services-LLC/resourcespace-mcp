@@ -1,15 +1,15 @@
 <?php
 
-$magnolia_mcp_enable = true;
-$magnolia_mcp_trust_proxy = false;
-$magnolia_mcp_allow_resources = true;
-$magnolia_mcp_allow_search = true;
-$magnolia_mcp_allow_collections = true;
-$magnolia_mcp_allow_metadata = true;
-$magnolia_mcp_allow_users = true;
-$magnolia_mcp_allow_system = true;
-$magnolia_mcp_allow_plugins = true;
-$magnolia_mcp_allow_uncurated = false;
+$resourcespace_mcp_enable = true;
+$resourcespace_mcp_trust_proxy = false;
+$resourcespace_mcp_allow_resources = true;
+$resourcespace_mcp_allow_search = true;
+$resourcespace_mcp_allow_collections = true;
+$resourcespace_mcp_allow_metadata = true;
+$resourcespace_mcp_allow_users = true;
+$resourcespace_mcp_allow_system = true;
+$resourcespace_mcp_allow_plugins = true;
+$resourcespace_mcp_allow_uncurated = false;
 
 // include_plugin_config() copies locals onto $GLOBALS. Append so core 'login' is not wiped.
 global $CSRF_exempt_pages;

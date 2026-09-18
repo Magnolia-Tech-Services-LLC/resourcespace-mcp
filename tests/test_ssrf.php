@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_dispatch.php';
+require_once dirname(__DIR__) . '/include/mcp_dispatch.php';
 
 unset($GLOBALS['api_upload_urls']);
 

@@ -359,7 +359,7 @@ function mcp_handle_message(array $request, array $server, array $plugin_state):
     $plugins = $plugin_state['plugins'] ?? [];
     if (
         !is_array($plugins)
-        || !in_array('magnolia_mcp', $plugins, true)
+        || !in_array('resourcespace_mcp', $plugins, true)
         || empty($plugin_state['enable'])
         || empty($plugin_state['enable_remote_apis'])
     ) {

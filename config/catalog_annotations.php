@@ -1,6 +1,6 @@
 <?php
 
-$magnolia_mcp_annotations = [
+$resourcespace_mcp_annotations = [
     'do_search' => [
         'category' => 'search',
         'description' => 'Search resources by query, type, and archive state.',

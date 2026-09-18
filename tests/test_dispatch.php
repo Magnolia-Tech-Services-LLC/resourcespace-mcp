@@ -1,6 +1,6 @@
 <?php
 
-require dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_dispatch.php';
+require dirname(__DIR__) . '/include/mcp_dispatch.php';
 
 $q = mcp_build_query('update_field', ['resource' => 12, 'field' => 8, 'value' => 'x']);
 parse_str($q, $p);

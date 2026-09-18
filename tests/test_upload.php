@@ -1,11 +1,11 @@
 <?php
 
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_jsonrpc.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_dispatch.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_catalog.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_auth.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_oauth.php';
-require_once dirname(__DIR__) . '/plugins/magnolia_mcp/include/mcp_upload.php';
+require_once dirname(__DIR__) . '/include/mcp_jsonrpc.php';
+require_once dirname(__DIR__) . '/include/mcp_dispatch.php';
+require_once dirname(__DIR__) . '/include/mcp_catalog.php';
+require_once dirname(__DIR__) . '/include/mcp_auth.php';
+require_once dirname(__DIR__) . '/include/mcp_oauth.php';
+require_once dirname(__DIR__) . '/include/mcp_upload.php';
 
 if (!function_exists('isValidCSRFToken')) {
     function isValidCSRFToken($token_data, $session_id)
@@ -77,7 +77,7 @@ mcp_test_expect_eq($anon['ok'] ?? true, false, 'anonymous rejected');
 $GLOBALS['anonymous_login'] = '';
 
 $state = [
-    'plugins' => ['magnolia_mcp'],
+    'plugins' => ['resourcespace_mcp'],
     'enable' => true,
     'enable_remote_apis' => true,
     'trust_proxy' => false,
@@ -88,7 +88,7 @@ $state = [
         'upload_multipart' => ['category' => 'resources'],
     ],
 ];
-$GLOBALS['magnolia_mcp_allow_resources'] = true;
+$GLOBALS['resourcespace_mcp_allow_resources'] = true;
 $https = ['HTTPS' => 'on', 'REQUEST_METHOD' => 'POST', 'CONTENT_TYPE' => 'multipart/form-data; boundary=x'];
 $key = hash('sha256', '7' . $GLOBALS['mcp_test_scramble']);
 $auth = 'Bearer alice:' . $key;
@@ -154,7 +154,7 @@ $api_fail = mcp_upload_handle($https + ['HTTP_AUTHORIZATION' => $auth], ['ref' =
 ], [], $state);
 mcp_test_expect_eq($api_fail['http'], 403, 'get_resource_data error array is 403');
 
-$src = (string) file_get_contents(dirname(__DIR__) . '/plugins/magnolia_mcp/pages/mcp_upload.php');
+$src = (string) file_get_contents(dirname(__DIR__) . '/pages/mcp_upload.php');
 mcp_test_expect(str_contains($src, '$disable_browser_check = true'), 'upload page disables browser check');
 $boot = strpos($src, 'boot.php');
 $flag = strpos($src, '$disable_browser_check');

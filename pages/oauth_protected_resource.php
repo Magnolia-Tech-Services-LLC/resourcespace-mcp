@@ -10,5 +10,5 @@ echo json_encode([
     'authorization_servers' => [mcp_oauth_issuer()],
     'scopes_supported' => ['mcp'],
     'bearer_methods_supported' => ['header'],
-    'resource_documentation' => mcp_oauth_issuer() . '/plugins/magnolia_mcp/pages/setup.php',
+    'resource_documentation' => mcp_oauth_issuer() . '/plugins/resourcespace_mcp/pages/setup.php',
 ]);
