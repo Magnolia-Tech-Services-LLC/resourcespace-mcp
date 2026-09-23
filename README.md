@@ -35,4 +35,4 @@ php tests/run.php
 
 ## License
 
-BSD 3-Clause. See `LICENSE`.
+BSD 3-Clause. Developed by Magnolia Tech Services. See `LICENSE`.

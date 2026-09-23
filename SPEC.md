@@ -57,6 +57,7 @@ plugins/resourcespace_mcp/
 ```
 name: resourcespace_mcp
 title: MCP Server
+author: Magnolia Tech Services
 version: 1
 desc: MCP server so AI assistants can act as a ResourceSpace user
 category: API

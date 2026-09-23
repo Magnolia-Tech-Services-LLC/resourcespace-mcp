@@ -5,6 +5,7 @@ $yaml = file_get_contents($root . '/resourcespace_mcp.yaml');
 mcp_test_expect($yaml !== false, 'yaml exists');
 mcp_test_expect((bool) preg_match('/^name: resourcespace_mcp\s*$/m', $yaml), 'yaml name unquoted resourcespace_mcp');
 mcp_test_expect((bool) preg_match('/^title: MCP Server\s*$/m', $yaml), 'yaml title is MCP Server');
+mcp_test_expect((bool) preg_match('/^author: Magnolia Tech Services\s*$/m', $yaml), 'yaml author is Magnolia Tech Services');
 mcp_test_expect((bool) preg_match('/^category: API\s*$/m', $yaml), 'yaml category is API');
 mcp_test_expect((bool) preg_match('/^disable_group_select: 1\s*$/m', $yaml), 'disable_group_select is 1');
 mcp_test_expect((bool) preg_match('/^info_url: \/plugins\/resourcespace_mcp\/pages\/help\.php\s*$/m', $yaml), 'yaml info_url is help page');
