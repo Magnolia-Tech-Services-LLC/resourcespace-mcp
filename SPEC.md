@@ -2,7 +2,7 @@
 
 ## Context
 
-Magnolia Tech Services wants ResourceSpace (Montala's open-source DAM, self-hosted) to speak MCP so Claude can act on the DAM directly — search, upload, tag, manage collections, administer — for whichever instance the plugin is installed on. Connecting requires an existing ResourceSpace user account. Every action runs as that user and is limited by that account's RS permissions (usergroup, `checkperm()`, resource/collection/field access). Three hard constraints shape everything below:
+This plugin lets ResourceSpace (Montala's open-source DAM, self-hosted) speak MCP so Claude can act on the DAM directly — search, upload, tag, manage collections, administer — for whichever instance the plugin is installed on. Connecting requires an existing ResourceSpace user account. Every action runs as that user and is limited by that account's RS permissions (usergroup, `checkperm()`, resource/collection/field access). Three hard constraints shape everything below:
 
 1. **It ships as a native ResourceSpace plugin** (`plugins/resourcespace_mcp/`), not a separate hosted service — it runs inside RS's own PHP request lifecycle, connects only to its own instance, and must follow Montala's plugin conventions so it upgrades cleanly with RS core.
 2. **Tool count must stay flat regardless of API size.** The request was to follow "the Cloudflare MCP method." Research found that's actually Cloudflare's *Code Mode* — a sandboxed JS-code-execution pattern — which is the wrong shape for a PHP plugin with admin-level DB access (new attack surface, new runtime dependency, no payoff over the alternative). The confirmed substitute is a **search + execute** tool pair (the same outcome — flat context cost — implemented in plain PHP, matching Anthropic's own Tool Search Tool pattern and the common MCP "large API surface" tool-design pattern).
@@ -57,7 +57,6 @@ plugins/resourcespace_mcp/
 ```
 name: resourcespace_mcp
 title: MCP Server
-author: Magnolia Tech Services
 version: 1
 desc: MCP server so AI assistants can act as a ResourceSpace user
 category: API
@@ -93,7 +92,7 @@ disable_group_select: 1
   3. Plugin enable toggle (in addition to `$enable_remote_apis`).
   4. Trusted-proxy toggle (trust `X-Forwarded-Proto`) — **default off**.
   5. Per-category allowlist Yes/No selects (§3) — curated categories default on, `uncurated` default off.
-  6. Origin rewrite snippets: `{baseurl}/mcp` → plugin `mcp.php`, plus `/.well-known/` OAuth discovery. Apache uses `%{REQUEST_URI}` so the same rules work in a vhost or DocumentRoot `.htaccess`. nginx locations belong in the `server` block. Rewrite targets include the `$baseurl` path (where the plugin files live). Origin discovery is still `/.well-known/` on the site root. The paste URL is `{baseurl}/mcp` (the ResourceSpace install URL plus `/mcp`), not a Magnolia-branded plugin path. Existing `/mcp.php` and `pages/mcp.php` URLs remain resource aliases.
+  6. Origin rewrite snippets: `{baseurl}/mcp` → plugin `mcp.php`, plus `/.well-known/` OAuth discovery. Apache uses `%{REQUEST_URI}` so the same rules work in a vhost or DocumentRoot `.htaccess`. nginx locations belong in the `server` block. Rewrite targets include the `$baseurl` path (where the plugin files live). Origin discovery is still `/.well-known/` on the site root. The paste URL is `{baseurl}/mcp` (the ResourceSpace install URL plus `/mcp`). Existing `/mcp.php` and `pages/mcp.php` URLs remain resource aliases.
   7. Authenticator-app note and revoke-all-tokens button (with confirm).
   8. If this setup request arrived as HTTP with `X-Forwarded-Proto: https` and the reverse-proxy toggle is off, show a warning to enable it.
 - There is **no upload UI** on setup or help. MCP tools still upload (`rs_upload_resource`, `create_resource` with a URL, `pages/mcp_upload.php`).

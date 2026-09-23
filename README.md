@@ -35,4 +35,4 @@ php tests/run.php
 
 ## License
 
-BSD 3-Clause. Copyright (c) 2026 Magnolia Tech Services, LLC. See `LICENSE`.
+BSD 3-Clause. See `LICENSE`.
