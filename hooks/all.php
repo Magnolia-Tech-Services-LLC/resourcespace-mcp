@@ -71,8 +71,3 @@ function HookResourcespace_mcpAllUser_home_additional_links()
 {
     return resourcespace_mcp_render_help_nav();
 }
-
-function HookResourcespace_mcpAllCustomteamfunction()
-{
-    return resourcespace_mcp_render_help_nav();
-}

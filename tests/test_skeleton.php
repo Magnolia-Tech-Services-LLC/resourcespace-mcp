@@ -23,7 +23,7 @@ mcp_test_expect(file_exists($hook), 'hooks/all.php exists');
 require_once $hook;
 mcp_test_expect(function_exists('HookResourcespace_mcpAllExtra_checks'), 'extra_checks hook defined');
 mcp_test_expect(function_exists('HookResourcespace_mcpAllUser_home_additional_links'), 'user home help link hook defined');
-mcp_test_expect(function_exists('HookResourcespace_mcpAllCustomteamfunction'), 'team centre tile hook defined');
+mcp_test_expect(!function_exists('HookResourcespace_mcpAllCustomteamfunction'), 'no team centre tile');
 mcp_test_expect(function_exists('HookResourcespace_mcpAllPreheaderoutput'), 'totp return hook defined');
 mcp_test_expect(isset($lang['resourcespace_mcp_help_title']), 'help title lang set');
 mcp_test_expect(isset($lang['resourcespace_mcp_help_step2']), 'help step2 lang set');
