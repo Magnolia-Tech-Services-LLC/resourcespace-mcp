@@ -1,6 +1,8 @@
 <?php
-include '../../../include/boot.php';
-include '../../../include/authenticate.php';
+require_once __DIR__ . '/../include/mcp_rs_path.php';
+$rs_include = mcp_rs_include_dir(__DIR__);
+include $rs_include . '/boot.php';
+include $rs_include . '/authenticate.php';
 if (!checkperm('a')) {
     exit('Permission denied.');
 }
@@ -32,8 +34,8 @@ $page_def[] = config_add_html(
 );
 $page_def[] = config_add_boolean_select('resourcespace_mcp_enable', $lang['resourcespace_mcp_enable']);
 $https_on = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && strtolower((string) $_SERVER['HTTPS']) !== 'off';
-$forwarded = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
-if (!$https_on && $forwarded === 'https' && empty($resourcespace_mcp_trust_proxy)) {
+include_once dirname(__DIR__) . '/include/mcp_jsonrpc.php';
+if (!$https_on && mcp_forwarded_https($_SERVER) && empty($resourcespace_mcp_trust_proxy)) {
     $page_def[] = config_add_html(
         '<div class="Question"><div class="Fixed">' . escape($lang['resourcespace_mcp_trust_proxy_needed'])
         . '</div><div class="clearerleft"></div></div>'
@@ -125,6 +127,6 @@ $page_def[] = config_add_html(
 );
 
 config_gen_setup_post($page_def, $plugin_name);
-include '../../../include/header.php';
+include $rs_include . '/header.php';
 config_gen_setup_html($page_def, $plugin_name, null, $lang['resourcespace_mcp_title']);
-include '../../../include/footer.php';
+include $rs_include . '/footer.php';

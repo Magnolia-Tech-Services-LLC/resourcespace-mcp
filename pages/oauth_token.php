@@ -1,6 +1,8 @@
 <?php
 $disable_browser_check = true;
-include '../../../include/boot.php';
+require_once __DIR__ . '/../include/mcp_rs_path.php';
+$rs_include = mcp_rs_include_dir(__DIR__);
+include $rs_include . '/boot.php';
 include_once __DIR__ . '/../include/mcp_jsonrpc.php';
 include_once __DIR__ . '/../include/mcp_oauth.php';
 

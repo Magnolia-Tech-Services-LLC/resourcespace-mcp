@@ -53,10 +53,20 @@ function mcp_https_ok(array $server, string $baseurl, bool $trust_proxy): bool
     if ($https !== '' && strtolower((string) $https) !== 'off') {
         return true;
     }
-    if ($trust_proxy && strtolower((string) ($server['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https') {
+    if ($trust_proxy && mcp_forwarded_https($server)) {
         return true;
     }
     return false;
+}
+
+function mcp_forwarded_https(array $server): bool
+{
+    $raw = strtolower((string) ($server['HTTP_X_FORWARDED_PROTO'] ?? ''));
+    if ($raw === '') {
+        return false;
+    }
+    $first = trim(explode(',', $raw, 2)[0]);
+    return $first === 'https';
 }
 
 function mcp_oauth_machine_json(): void

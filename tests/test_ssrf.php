@@ -19,6 +19,10 @@ mcp_test_expect_eq($d['ok'], false, 'private ipv4 rejected');
 $e = mcp_url_allowed('http://169.254.169.254/latest/meta-data');
 mcp_test_expect_eq($e['ok'], false, 'metadata ip rejected');
 
+$cgnat = mcp_url_allowed('http://100.100.100.200/latest/meta-data');
+mcp_test_expect_eq($cgnat['ok'], false, 'cgnat metadata ip rejected');
+mcp_test_expect_eq(mcp_ip_blocked('100.64.0.1'), true, 'cgnat 100.64/10 blocked');
+
 $GLOBALS['api_upload_urls'] = [];
 $f = mcp_url_allowed('https://8.8.8.8/file.jpg');
 mcp_test_expect_eq($f['ok'], false, 'empty allowlist rejects');

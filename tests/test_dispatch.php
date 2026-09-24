@@ -16,6 +16,8 @@ $lim = mcp_inject_limits('do_search', ['search' => 'cat']);
 mcp_test_expect_eq($lim['fetchrows'], 50, 'default fetchrows');
 $lim2 = mcp_inject_limits('do_search', ['search' => 'cat', 'fetchrows' => 10]);
 mcp_test_expect_eq($lim2['fetchrows'], 10, 'caller fetchrows kept');
+$lim_hi = mcp_inject_limits('do_search', ['search' => 'cat', 'fetchrows' => 1000000000]);
+mcp_test_expect_eq($lim_hi['fetchrows'], 50, 'huge fetchrows clamped to 50');
 $lim3 = mcp_inject_limits('checkperm', ['perm' => 's']);
 mcp_test_expect(!isset($lim3['fetchrows']), 'no fetchrows on checkperm');
 $lim_neg = mcp_inject_limits('do_search', ['search' => 'cat', 'fetchrows' => -1]);

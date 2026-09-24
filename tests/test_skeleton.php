@@ -98,7 +98,7 @@ $expected_ann = [
     'search' => ['do_search', 'search_get_previews', 'get_dash_search_data'],
     'resources' => [
         'create_resource', 'get_resource_data', 'get_resource_field_data', 'put_resource_data',
-        'delete_resource', 'copy_resource', 'upload_file', 'upload_file_by_url', 'upload_multipart',
+        'delete_resource', 'copy_resource', 'upload_file_by_url', 'upload_multipart',
         'replace_resource_file', 'add_alternative_file', 'delete_alternative_file', 'get_alternative_files',
         'get_related_resources', 'update_related_resource', 'relate_all_resources', 'get_resource_log',
         'resource_log_last_rows', 'get_resource_path', 'get_resource_all_image_sizes', 'get_data_by_field',
@@ -158,10 +158,7 @@ unset($_SERVER['HTTPS']);
 $fail_checks = HookResourcespace_mcpAllExtra_checks();
 mcp_test_expect_eq($fail_checks['resourcespace_mcp']['status'] ?? null, 'FAIL', 'extra_checks fails when remote apis off');
 $GLOBALS['enable_remote_apis'] = true;
-$GLOBALS['CSRF_exempt_pages'] = array_values(array_unique(array_merge(
-    is_array($GLOBALS['CSRF_exempt_pages'] ?? null) ? $GLOBALS['CSRF_exempt_pages'] : [],
-    ['mcp_upload']
-)));
+$GLOBALS['CSRF_exempt_pages'] = mcp_csrf_required_pages();
 $ok_checks = HookResourcespace_mcpAllExtra_checks();
 mcp_test_expect_eq($ok_checks['resourcespace_mcp']['status'] ?? null, 'OK', 'extra_checks ok on CLI when baseurl is https');
 $GLOBALS['baseurl'] = 'http://dam.example';
@@ -187,19 +184,23 @@ $prev_csrf_base = $GLOBALS['baseurl'] ?? null;
 $GLOBALS['enable_remote_apis'] = true;
 $GLOBALS['resourcespace_mcp_enable'] = true;
 $GLOBALS['baseurl'] = 'https://dam.example';
-$GLOBALS['CSRF_exempt_pages'] = ['login', 'mcp'];
+$GLOBALS['CSRF_exempt_pages'] = array_values(array_diff(mcp_csrf_required_pages(), ['mcp_upload']));
 $csrf_fail = HookResourcespace_mcpAllExtra_checks();
 mcp_test_expect_eq($csrf_fail['resourcespace_mcp']['status'] ?? null, 'FAIL', 'extra_checks fails when mcp_upload not CSRF-exempt');
 mcp_test_expect(str_contains((string) ($csrf_fail['resourcespace_mcp']['info'] ?? ''), 'mcp_upload'), 'extra_checks names mcp_upload');
-$GLOBALS['CSRF_exempt_pages'] = ['login', 'mcp', 'mcp_upload'];
+$GLOBALS['CSRF_exempt_pages'] = array_values(array_diff(mcp_csrf_required_pages(), ['mcp']));
+$mcp_csrf_fail = HookResourcespace_mcpAllExtra_checks();
+mcp_test_expect_eq($mcp_csrf_fail['resourcespace_mcp']['status'] ?? null, 'FAIL', 'extra_checks fails when mcp not CSRF-exempt');
+mcp_test_expect((bool) preg_match('/dropped mcp(;|$)/', (string) ($mcp_csrf_fail['resourcespace_mcp']['info'] ?? '')), 'extra_checks names mcp');
+$GLOBALS['CSRF_exempt_pages'] = mcp_csrf_required_pages();
 $csrf_ok = HookResourcespace_mcpAllExtra_checks();
-mcp_test_expect_eq($csrf_ok['resourcespace_mcp']['status'] ?? null, 'OK', 'extra_checks ok when mcp_upload exempt');
-$GLOBALS['CSRF_exempt_pages'] = ['mcp', 'mcp_upload'];
+mcp_test_expect_eq($csrf_ok['resourcespace_mcp']['status'] ?? null, 'OK', 'extra_checks ok when required pages exempt');
+$GLOBALS['CSRF_exempt_pages'] = array_values(array_diff(mcp_csrf_required_pages(), ['login']));
 $login_fail = HookResourcespace_mcpAllExtra_checks();
 mcp_test_expect_eq($login_fail['resourcespace_mcp']['status'] ?? null, 'FAIL', 'extra_checks fails when login dropped from CSRF exempt');
 $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
 unset($_SERVER['HTTPS']);
-$GLOBALS['CSRF_exempt_pages'] = ['login', 'mcp', 'mcp_upload'];
+$GLOBALS['CSRF_exempt_pages'] = mcp_csrf_required_pages();
 $GLOBALS['resourcespace_mcp_trust_proxy'] = false;
 $GLOBALS['baseurl'] = 'https://dam.example';
 $proxy_fail = HookResourcespace_mcpAllExtra_checks();
@@ -212,7 +213,8 @@ if ($prev_https === null) {
 }
 $cfg_src = (string) file_get_contents($root . '/config/config.php');
 mcp_test_expect(str_contains($cfg_src, 'global $CSRF_exempt_pages'), 'config.php uses global CSRF list');
-mcp_test_expect(str_contains($cfg_src, "['login']"), 'config.php seeds login if unset');
+mcp_test_expect(str_contains($cfg_src, 'mcp_csrf_required_pages'), 'config.php uses mcp_csrf_required_pages');
+mcp_test_expect(in_array('login', mcp_csrf_required_pages(), true), 'required CSRF pages include login');
 mcp_test_expect(str_contains($cfg_src, 'unset($mcp_csrf_page)'), 'config.php unsets CSRF loop variable');
 $GLOBALS['CSRF_exempt_pages'] = ['login', 'other_plugin'];
 (static function () use ($root): void {

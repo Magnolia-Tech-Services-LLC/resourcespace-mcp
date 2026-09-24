@@ -14,8 +14,8 @@ function HookResourcespace_mcpAllExtra_checks(): array
         $fail[] = 'MCP HTTPS check would refuse this host configuration';
     }
     $https_on = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && strtolower((string) $_SERVER['HTTPS']) !== 'off';
-    $forwarded = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
-    if (!$https_on && $forwarded === 'https' && empty($resourcespace_mcp_trust_proxy)) {
+    include_once dirname(__DIR__) . '/include/mcp_jsonrpc.php';
+    if (!$https_on && mcp_forwarded_https($_SERVER) && empty($resourcespace_mcp_trust_proxy)) {
         $fail[] = 'request is HTTPS via proxy but trust-proxy is off';
     }
     $base_path = (string) (parse_url((string) $baseurl, PHP_URL_PATH) ?? '');
@@ -23,11 +23,13 @@ function HookResourcespace_mcpAllExtra_checks(): array
         $fail[] = 'MCP origin well-known assumes $baseurl has no path; ChatGPT/Grok discovery will fail';
     }
     $exempt = is_array($CSRF_exempt_pages ?? null) ? $CSRF_exempt_pages : [];
-    if (!in_array('login', $exempt, true)) {
-        $fail[] = 'CSRF exempt list dropped login';
-    }
-    if (!in_array('mcp_upload', $exempt, true)) {
-        $fail[] = 'mcp_upload is not CSRF-exempt';
+    $need = function_exists('mcp_csrf_required_pages')
+        ? mcp_csrf_required_pages()
+        : ['login', 'mcp', 'mcp_upload'];
+    foreach ($need as $page) {
+        if (!in_array($page, $exempt, true)) {
+            $fail[] = 'CSRF exempt list dropped ' . $page;
+        }
     }
     $status = $fail === [] ? 'OK' : 'FAIL';
     $info = $fail === [] ? 'MCP Server looks ready' : implode('; ', $fail);

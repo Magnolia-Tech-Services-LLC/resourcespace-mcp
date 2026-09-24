@@ -117,7 +117,7 @@ $accept_pos = strpos((string) $mcp_src, 'mcp_accept_allows_json');
 $plugin_pos = strpos((string) $mcp_src, "in_array('resourcespace_mcp'");
 $handle_pos = strpos((string) $mcp_src, 'mcp_handle_message');
 mcp_test_expect($disable_pos !== false && $boot_pos !== false && $disable_pos < $boot_pos, 'disable_browser_check before boot.php');
-mcp_test_expect(str_contains((string) $mcp_src, 'dirname(__DIR__, 3)'), 'pages/mcp.php uses __DIR__ for RS include');
+mcp_test_expect(str_contains((string) $mcp_src, 'mcp_rs_include_dir'), 'pages/mcp.php uses mcp_rs_include_dir');
 mcp_test_expect($get_pos !== false && $decode_pos !== false && $get_pos < $decode_pos, 'GET branch before decode');
 mcp_test_expect(str_contains((string) $mcp_src, 'mcp_oauth_www_authenticate'), 'GET 401 sends WWW-Authenticate');
 $https_pos = strpos((string) $mcp_src, 'mcp_https_ok');
@@ -367,6 +367,13 @@ $ver_denied = mcp_handle_message(
     $state
 );
 mcp_test_expect_eq($ver_denied['http'], 400, 'unsupported protocol HTTP 400');
+$ver_init = mcp_handle_message(
+    ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize', 'params' => []],
+    $ver,
+    $state
+);
+mcp_test_expect_eq($ver_init['http'], 200, 'initialize ignores client protocol header');
+mcp_test_expect_eq($ver_init['body']['result']['protocolVersion'] ?? '', MCP_PROTOCOL_VERSION, 'initialize still pins 2025-03-26');
 
 mcp_test_expect_eq($init['body']['result']['serverInfo']['name'] ?? '', 'ResourceSpace', 'serverInfo name');
 mcp_test_expect(isset($init['body']['result']['capabilities']['tools']), 'initialize tools capability');

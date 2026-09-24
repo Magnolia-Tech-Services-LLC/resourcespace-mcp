@@ -1,7 +1,9 @@
 <?php
-include '../../../include/boot.php';
+require_once __DIR__ . '/../include/mcp_rs_path.php';
+$rs_include = mcp_rs_include_dir(__DIR__);
+include $rs_include . '/boot.php';
 include_once __DIR__ . '/../include/mcp_oauth.php';
-include '../../../include/authenticate.php';
+include $rs_include . '/authenticate.php';
 
 if (!mcp_oauth_plugin_enabled()) {
     http_response_code(403);
@@ -10,9 +12,9 @@ if (!mcp_oauth_plugin_enabled()) {
 
 if (mcp_oauth_is_anonymous_user()) {
     http_response_code(401);
-    include '../../../include/header.php';
+    include $rs_include . '/header.php';
     echo '<p>' . escape($lang['resourcespace_mcp_oauth_need_account']) . '</p>';
-    include '../../../include/footer.php';
+    include $rs_include . '/footer.php';
     exit;
 }
 
@@ -24,9 +26,9 @@ if ($is_post) {
     enforcePostRequest(false);
     if (!mcp_oauth_posted_csrf_ok()) {
         http_response_code(403);
-        include '../../../include/header.php';
+        include $rs_include . '/header.php';
         echo '<p>' . escape($lang['resourcespace_mcp_oauth_csrf']) . '</p>';
-        include '../../../include/footer.php';
+        include $rs_include . '/footer.php';
         exit;
     }
 }
@@ -37,9 +39,12 @@ if (!$validated['ok']) {
         exit;
     }
     http_response_code(400);
-    include '../../../include/header.php';
+    include $rs_include . '/header.php';
     echo '<p>' . escape((string) ($validated['error'] ?? 'invalid_request')) . '</p>';
-    include '../../../include/footer.php';
+    if (($validated['error_description'] ?? '') !== '') {
+        echo '<p>' . escape((string) $validated['error_description']) . '</p>';
+    }
+    include $rs_include . '/footer.php';
     exit;
 }
 
@@ -69,7 +74,7 @@ if ($is_post) {
 
 mcp_oauth_remember_return((string) ($_SERVER['REQUEST_URI'] ?? ''));
 
-include '../../../include/header.php';
+include $rs_include . '/header.php';
 $client_display = (string) ($validated['client']['display'] ?? '');
 $redirect_host = (string) parse_url($validated['redirect_uri'], PHP_URL_HOST);
 $client = $client_display !== '' ? $client_display : $redirect_host;
@@ -103,4 +108,4 @@ $text = str_replace(
     </form>
 </div>
 <?php
-include '../../../include/footer.php';
+include $rs_include . '/footer.php';

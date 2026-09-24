@@ -8,13 +8,15 @@ mcp_test_expect_eq(mcp_catalog_id('do_search'), null, 'non-api ignored');
 mcp_test_expect(in_array('login', mcp_deny_list(), true), 'login denied');
 mcp_test_expect(in_array('validate_upload_url', mcp_deny_list(), true), 'validate_upload_url denied');
 mcp_test_expect(in_array('do_report', mcp_deny_list(), true), 'do_report denied');
+mcp_test_expect(in_array('upload_file', mcp_deny_list(), true), 'upload_file denied');
 
-$php = ['api_do_search', 'api_login', 'api_validate_upload_url', 'api_new_user', 'api_get_resource_data', 'api_mystery_new'];
+$php = ['api_do_search', 'api_login', 'api_validate_upload_url', 'api_upload_file', 'api_new_user', 'api_get_resource_data', 'api_mystery_new'];
 require dirname(__DIR__) . '/config/catalog_annotations.php';
 $cat = mcp_catalog_from_functions($php, $resourcespace_mcp_annotations);
 
 mcp_test_expect(!isset($cat['login']), 'login not in catalog');
 mcp_test_expect(!isset($cat['validate_upload_url']), 'validate_upload_url not in catalog');
+mcp_test_expect(!isset($cat['upload_file']), 'upload_file not in catalog');
 mcp_test_expect_eq($cat['mystery_new']['unannotated'], true, 'unknown is uncurated');
 mcp_test_expect_eq($cat['mystery_new']['category'], 'uncurated', 'uncurated category');
 mcp_test_expect_eq($cat['mystery_new']['destructiveHint'], true, 'uncurated destructive');

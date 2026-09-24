@@ -35,7 +35,10 @@ function mcp_inject_limits(string $action, array $params): array
         return $params;
     }
     $n = (int) ($params[$key] ?? $params['limit'] ?? 50);
-    $params[$key] = $n < 1 ? 50 : $n;
+    if ($n < 1 || $n > 50) {
+        $n = 50;
+    }
+    $params[$key] = $n;
     return $params;
 }
 
@@ -58,6 +61,7 @@ function mcp_ssrf_ipv4_ranges(): array
         ['192.168.0.0', '192.168.255.255'],
         ['127.0.0.0', '127.255.255.255'],
         ['169.254.0.0', '169.254.255.255'],
+        ['100.64.0.0', '100.127.255.255'],
         ['0.0.0.0', '0.255.255.255'],
     ];
 }

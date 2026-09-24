@@ -99,7 +99,7 @@ disable_group_select: 1
 - There is **no upload UI** on setup or help. MCP tools still upload (`rs_upload_resource`, `create_resource` with a URL, `pages/mcp_upload.php`).
 - There is **no catalog refresh control**. The catalog cache key includes PHP version, RS version, plugin list, and annotations mtime; a miss rebuilds on the next MCP request.
 
-`hooks/all.php` implements `HookResourcespace_mcpAllExtra_checks`: return FAIL when `$enable_remote_apis` is off, the plugin toggle is off, or the trusted-proxy/HTTPS setup would refuse every request. Keep the hook body trivial — a fatal in `hooks/all.php` takes down the DAM.
+`hooks/all.php` implements `HookResourcespace_mcpAllExtra_checks`: return FAIL when `$enable_remote_apis` is off, the plugin toggle is off, the trusted-proxy/HTTPS setup would refuse every request, or any page in `mcp_csrf_required_pages()` (including `mcp` and the OAuth machine pagenames) is missing from `$CSRF_exempt_pages`. Keep the hook body trivial — a fatal in `hooks/all.php` takes down the DAM.
 
 ### 2. Transport: bespoke endpoint, not `api_bindings.php`
 
@@ -107,11 +107,11 @@ MCP's JSON-RPC envelope (`initialize` / `tools/list` / `tools/call`) can't ride 
 
 - Protocol: MCP streamable HTTP, **stateless, JSON response mode** — one HTTP request per JSON-RPC message, no long-lived SSE stream, no session resumption, no `Mcp-Session-Id` issued. JSON response mode is valid when the client `Accept` lists `application/json` (MCP clients MUST send both `application/json` and `text/event-stream`). If `Accept` is only `text/event-stream`, return 406.
 - `protocolVersion` is pinned to **`2025-03-26`**. `initialize` returns that version, `serverInfo` (name `ResourceSpace`, version from the yaml), and `capabilities` (tools only — no resources/prompts/sampling, see §7). Do not negotiate a later version that drops this handshake.
-- `MCP-Protocol-Version` on post-initialize requests: missing → assume `2025-03-26`; unsupported/mismatch → HTTP 400.
+- `MCP-Protocol-Version` on **post-initialize** requests: missing → assume `2025-03-26`; unsupported/mismatch → HTTP 400. Do **not** apply this check to `initialize`; return `2025-03-26` even if the client advertised a later header on the first POST.
 - `notifications/initialized` with no JSON-RPC `id` → HTTP 202, empty body. If a client wrongly sends an `id`, return a JSON-RPC result (empty object) with HTTP 200.
 - `ping` returns an empty result object.
 - Implementation: hand-rolled JSON-RPC 2.0 subset (`initialize`, `tools/list`, `tools/call`, `ping`) in vanilla PHP. No Composer, no MCP SDK.
-- HTTPS required. `$baseurl` beginning with `https://` is **not** proof this request is TLS (`boot.php` only rewrites `$baseurl` when `SERVER_PORT == 443`; it does not read `X-Forwarded-Proto`). Check the request: `$_SERVER['HTTPS']` is on, **or** (only if the trusted-proxy toggle is on) `X-Forwarded-Proto` is `https`. Refuse otherwise. Also refuse if configured `$baseurl` scheme is not `https`.
+- HTTPS required. `$baseurl` beginning with `https://` is **not** proof this request is TLS (`boot.php` only rewrites `$baseurl` when `SERVER_PORT == 443`; it does not read `X-Forwarded-Proto`). Check the request: `$_SERVER['HTTPS']` is on, **or** (only if the trusted-proxy toggle is on) the **left-most** `X-Forwarded-Proto` hop is `https` (so `https,http` counts). Refuse otherwise. Also refuse if configured `$baseurl` scheme is not `https`.
 - Do **not** 403 machine endpoints when `Origin` is a connector host (`https://claude.ai`). Bearer APIs are not cookie CSRF. `mcp_origin_ok()` is unused on the request path. `oauth_authorize.php` is a same-origin RS page and validates `isValidCSRFToken` on POST.
 - Unauthenticated GET/HEAD → 401 + `WWW-Authenticate` (OAuth discovery). Authenticated GET → 405. Reject JSON-RPC batch arrays with HTTP 400. Reject unknown methods with JSON-RPC `-32601`, HTTP 200. HTTP DELETE → 405. Parse error → HTTP 400, `-32700`. Invalid request → HTTP 400, `-32600`.
 - Every JSON-RPC method — including `initialize`, `tools/list`, and `ping` — requires a bearer token from §5 (API key **or** OAuth access token). Missing/invalid token → HTTP 401, JSON-RPC error `{"jsonrpc":"2.0","error":{"code":-32001,"message":"Unauthorized"},"id": <request id or null>}`, plus `WWW-Authenticate` for connector discovery (see OAuth connector spec). Unauthenticated GET on `mcp.php` is 401 (not 405) once OAuth ships.
@@ -160,6 +160,8 @@ Every curated entry maps to exactly one of the first seven. Uncurated entries ar
 |------------------------|-----|
 | `login`                | `api_login` mints a session key |
 | `validate_upload_url`  | SSRF oracle if called as an action |
+| `do_report`            | CSV attachment / `exit` can break the JSON-RPC envelope |
+| `upload_file`          | local `file_path` ingest; use URL upload or `mcp_upload.php` |
 
 If reflection on this instance yields any other `api_*` whose return value is a session or user key, add it to this table in code (keep the shipped table as the minimum). `get_session_api_key()` is not an `api_*` function and will not appear in reflection. If `do_report` is reflected and the wrapper defaults `$download = true` (CSV attachment / exit), deny-list it until a curated annotation can pass `download=false`; do not let it break the JSON-RPC envelope.
 
@@ -214,7 +216,7 @@ Names in the arrows above are catalog IDs (`execute_api_call` `function=` values
 
 **Annotations are per-tool, not per-call.** `rs_execute_action` and `rs_manage_collection` both advertise a fixed `destructiveHint: true`. Per-action hints live only as data in `rs_search_actions` results.
 
-**Result size**: inject limits **before** dispatch. If the caller omitted a row cap, default `fetchrows` (or equivalent) to 50 for: `do_search`, `search_get_previews`, `get_users`, `get_resource_log`, `resource_log_last_rows`. After `execute_api_call()`, `json_decode` the result, truncate the data structure if still over 50KB encoded, re-encode, and append a truncation notice. Never `substr()` the JSON string. Promoted `rs_search` always passes `fetchrows`.
+**Result size**: inject limits **before** dispatch. If the caller omitted a row cap, default `fetchrows` (or equivalent) to 50 for: `do_search`, `search_get_previews`, `get_users`, `get_resource_log`, `resource_log_last_rows`. Clamp any supplied cap to a maximum of 50. After `execute_api_call()`, `json_decode` the result, truncate the data structure if still over 50KB encoded, re-encode, and append a truncation notice. Never `substr()` the JSON string. Promoted `rs_search` always passes `fetchrows`.
 
 **Param mapping**: build the query with **named** keys (`function=update_field&resource=12&field=8&value=…`), URL-encoded. JSON-encode array/object values (the named branch of `execute_api_call()` JSON-decodes parameters typed `array`). Do not emit `param1..paramN`. Curated entries may note comma-separated list vs JSON for a given field; default is JSON for arrays.
 
@@ -256,7 +258,7 @@ An MCP `tools/call` carries a JSON params object, not a multipart body — `uplo
 Before calling `upload_file_by_url` / `create_resource` with a URL:
 
 1. Reject non-`http`/`https` schemes.
-2. Resolve the caller-supplied host and **refuse** if any address is private, loopback, link-local, or a cloud metadata range (`169.254.169.254`, `fd00:ec2::254`, etc.). `api_validate_upload_url()` does not do this.
+2. Resolve the caller-supplied host and **refuse** if any address is private, loopback, link-local, CGNAT (`100.64.0.0/10`), or a cloud metadata range (`169.254.169.254`, `fd00:ec2::254`, etc.). `api_validate_upload_url()` does not do this. Deny-list `upload_file` (local `file_path`); URL uploads go through this pre-check.
 3. Honor `$api_upload_urls` when it is a non-empty list. If unset, step 2 still applies (do not allow-all). If it is an empty array (new installs), fail with a message that names `$api_upload_urls` — not a generic `false`.
 4. Then `execute_api_call` as usual (`api_upload_file_by_url` still runs `api_validate_upload_url` itself).
 

@@ -420,15 +420,34 @@ function mcp_oauth_consume_return(): ?string
 function mcp_oauth_append_query(string $redirect_uri, array $params): string
 {
     $parts = parse_url($redirect_uri);
-    $base = $redirect_uri;
+    if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
+        return $redirect_uri;
+    }
     $existing = [];
     if (isset($parts['query'])) {
         parse_str($parts['query'], $existing);
-        $base = substr($redirect_uri, 0, -strlen($parts['query']) - 1);
     }
     $query = http_build_query(array_merge($existing, $params));
-    $sep = str_contains($base, '?') ? '&' : '?';
-    return $base . $sep . $query;
+    $out = $parts['scheme'] . '://';
+    if (isset($parts['user'])) {
+        $out .= $parts['user'];
+        if (isset($parts['pass'])) {
+            $out .= ':' . $parts['pass'];
+        }
+        $out .= '@';
+    }
+    $out .= $parts['host'];
+    if (isset($parts['port'])) {
+        $out .= ':' . $parts['port'];
+    }
+    $out .= $parts['path'] ?? '';
+    if ($query !== '') {
+        $out .= '?' . $query;
+    }
+    if (isset($parts['fragment']) && $parts['fragment'] !== '') {
+        $out .= '#' . $parts['fragment'];
+    }
+    return $out;
 }
 
 function mcp_oauth_grant_location(string $redirect_uri, string $code, string $state): string
@@ -449,7 +468,7 @@ function mcp_oauth_deny_location(string $redirect_uri, string $state): string
     return mcp_oauth_append_query($redirect_uri, $params);
 }
 
-function mcp_oauth_authorize_fail(string $error, bool $html, string $redirect_uri, string $state): array
+function mcp_oauth_authorize_fail(string $error, bool $html, string $redirect_uri, string $state, string $description = ''): array
 {
     $redirect = '';
     if (!$html && $redirect_uri !== '') {
@@ -462,6 +481,7 @@ function mcp_oauth_authorize_fail(string $error, bool $html, string $redirect_ur
     return [
         'ok' => false,
         'error' => $error,
+        'error_description' => $description,
         'redirect' => $redirect,
         'html' => $html || $redirect === '',
         'client' => null,
@@ -532,9 +552,9 @@ function mcp_oauth_validate_authorize_request(array $query): array
 
     if (!$can_redirect) {
         if ($client_id === '' || $redirect_uri === '' || str_contains($load_error, 'redirect')) {
-            return mcp_oauth_authorize_fail('invalid_request', true, $redirect_uri, $state);
+            return mcp_oauth_authorize_fail('invalid_request', true, $redirect_uri, $state, $load_error);
         }
-        return mcp_oauth_authorize_fail('invalid_client', true, $redirect_uri, $state);
+        return mcp_oauth_authorize_fail('invalid_client', true, $redirect_uri, $state, $load_error);
     }
 
     if ($response_type !== 'code') {

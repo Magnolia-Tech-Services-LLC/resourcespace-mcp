@@ -1,6 +1,7 @@
 <?php
 $disable_browser_check = true;
-$rs_include = dirname(__DIR__, 3) . '/include';
+require_once __DIR__ . '/../include/mcp_rs_path.php';
+$rs_include = mcp_rs_include_dir(__DIR__);
 include $rs_include . '/boot.php';
 include_once $rs_include . '/image_processing.php';
 include_once $rs_include . '/api_functions.php';

@@ -1,6 +1,8 @@
 <?php
-include '../../../include/boot.php';
-include '../../../include/authenticate.php';
+require_once __DIR__ . '/../include/mcp_rs_path.php';
+$rs_include = mcp_rs_include_dir(__DIR__);
+include $rs_include . '/boot.php';
+include $rs_include . '/authenticate.php';
 include_once dirname(__DIR__) . '/include/mcp_oauth.php';
 
 if (mcp_oauth_is_anonymous_user()) {
@@ -21,7 +23,7 @@ if (getval('revoke_mine', '') !== '' && enforcePostRequest(false) && mcp_oauth_p
     $revoked_mine = true;
 }
 
-include '../../../include/header.php';
+include $rs_include . '/header.php';
 ?>
 <div class="BasicsBox">
     <h1><?php echo escape($lang['resourcespace_mcp_help_title']); ?></h1>
@@ -66,4 +68,4 @@ include '../../../include/header.php';
     </form>
 </div>
 <?php
-include '../../../include/footer.php';
+include $rs_include . '/footer.php';

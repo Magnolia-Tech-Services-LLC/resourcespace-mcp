@@ -372,9 +372,11 @@ function mcp_handle_message(array $request, array $server, array $plugin_state):
         return mcp_message_error($id, 401, -32001, 'Unauthorized', ['WWW-Authenticate: ' . mcp_oauth_www_authenticate()]);
     }
 
-    $proto = mcp_protocol_version_ok($server['HTTP_MCP_PROTOCOL_VERSION'] ?? null);
-    if (!$proto['ok']) {
-        return mcp_message_error($id, (int) $proto['http'], -32600, 'Unsupported protocol version');
+    if ($method !== 'initialize') {
+        $proto = mcp_protocol_version_ok($server['HTTP_MCP_PROTOCOL_VERSION'] ?? null);
+        if (!$proto['ok']) {
+            return mcp_message_error($id, (int) $proto['http'], -32600, 'Unsupported protocol version');
+        }
     }
 
     switch ($method) {

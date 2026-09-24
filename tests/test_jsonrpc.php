@@ -28,6 +28,8 @@ mcp_test_expect_eq(mcp_https_ok(['HTTPS' => 'on'], 'https://dam.example', false)
 mcp_test_expect_eq(mcp_https_ok([], 'https://dam.example', false), false, 'plain request refused even if baseurl https');
 mcp_test_expect_eq(mcp_https_ok(['HTTP_X_FORWARDED_PROTO' => 'https'], 'https://dam.example', false), false, 'forwarded ignored without toggle');
 mcp_test_expect_eq(mcp_https_ok(['HTTP_X_FORWARDED_PROTO' => 'https'], 'https://dam.example', true), true, 'forwarded trusted');
+mcp_test_expect_eq(mcp_https_ok(['HTTP_X_FORWARDED_PROTO' => 'https,http'], 'https://dam.example', true), true, 'forwarded left-most hop https');
+mcp_test_expect_eq(mcp_https_ok(['HTTP_X_FORWARDED_PROTO' => 'http,https'], 'https://dam.example', true), false, 'forwarded left-most hop http refused');
 mcp_test_expect_eq(mcp_https_ok(['HTTPS' => 'on'], 'http://dam.example', false), false, 'http baseurl refused');
 
 mcp_test_expect_eq(mcp_origin_ok(null, 'https://dam.example'), true, 'missing origin allowed');

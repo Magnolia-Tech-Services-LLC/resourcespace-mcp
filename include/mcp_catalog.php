@@ -2,7 +2,7 @@
 
 function mcp_deny_list(): array
 {
-    return ['login', 'validate_upload_url', 'do_report'];
+    return ['login', 'validate_upload_url', 'do_report', 'upload_file'];
 }
 
 function mcp_categories(): array
@@ -85,7 +85,8 @@ function mcp_catalog_cache_key(?array $plugins_override = null): string
         is_file($ann) ? (string) filemtime($ann) : '0',
         (string) filemtime(__FILE__),
     ];
-    $core = dirname(__DIR__, 3) . '/include/api_bindings.php';
+    include_once __DIR__ . '/mcp_rs_path.php';
+    $core = mcp_rs_include_dir(__DIR__) . '/api_bindings.php';
     $parts[] = is_file($core) ? (string) filemtime($core) : '0';
     $plugin_root = dirname(__DIR__, 2);
     foreach ($use as $p) {

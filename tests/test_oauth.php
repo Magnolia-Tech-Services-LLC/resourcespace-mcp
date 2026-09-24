@@ -372,6 +372,11 @@ $GLOBALS['username'] = 'guest';
 mcp_test_expect_eq(mcp_oauth_is_anonymous_user(), true, 'guest is anonymous');
 
 $loc = mcp_oauth_grant_location('https://example.com/cb', 'abc', 'st');
+mcp_test_expect(str_contains($loc, 'code=abc'), 'grant has code');
+$frag = mcp_oauth_append_query('https://example.com/cb?x=1#frag', ['code' => 'abc']);
+mcp_test_expect(str_contains($frag, 'code=abc'), 'fragment grant keeps code');
+mcp_test_expect(str_ends_with($frag, '#frag'), 'fragment stays after query');
+mcp_test_expect(!str_contains($frag, '#frag?'), 'fragment is not before query');
 mcp_test_expect(str_starts_with($loc, 'https://example.com/cb?'), 'grant Location keeps client host');
 mcp_test_expect(str_contains($loc, 'code=abc'), 'grant has code');
 mcp_test_expect(str_contains($loc, 'state=st'), 'grant has state');
@@ -392,6 +397,7 @@ mcp_test_expect(str_contains($authz_src, 'mcp_oauth_posted_csrf_ok'), 'authorize
 mcp_test_expect(str_contains($oauth_src, 'isValidCSRFToken'), 'consent CSRF uses isValidCSRFToken');
 mcp_test_expect(str_contains($authz_src, 'mcp_oauth_plugin_enabled'), 'authorize requires plugin enable');
 mcp_test_expect(str_contains($authz_src, 'resourcespace_mcp_oauth_redirect'), 'authorize shows redirect host');
+mcp_test_expect(str_contains($authz_src, 'error_description'), 'authorize shows CIMD load error');
 mcp_test_expect(str_contains($authz_src, 'mcp_oauth_remember_return'), 'authorize remembers TOTP return');
 mcp_test_expect(str_contains($authz_src, 'enforcePostRequest'), 'authorize POST enforced');
 mcp_test_expect(!str_contains($authz_src, '$disable_browser_check'), 'authorize is a browser page');
@@ -402,6 +408,8 @@ mcp_test_expect(str_contains($en, "'Grant access'"), 'consent title is Grant acc
 mcp_test_expect(str_contains($en, "'MCP Server'"), 'plugin display name is MCP Server');
 mcp_test_expect(str_contains($en, '[client]'), 'consent text has client placeholder');
 mcp_test_expect(str_contains($en, '[username]'), 'consent text has username placeholder');
+mcp_test_expect(str_contains($en, 'claude.ai'), 'help names claude.ai egress');
+mcp_test_expect(str_contains($en, 'API-key'), 'fallback is API-key only');
 
 mcp_oauth_test_reset_store();
 $reg = mcp_oauth_register(
