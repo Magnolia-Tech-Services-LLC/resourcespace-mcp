@@ -505,4 +505,19 @@ $resourcespace_mcp_annotations = [
         'readOnlyHint' => true,
         'destructiveHint' => false,
     ],
+
+    'magnolia_query_activity_log' => [
+        'category' => 'plugins',
+        'description' => 'Query activity_log for Traffic/ops (user, note_like, America/Chicago month_year).',
+        'synonyms' => ['activity', 'log', 'traffic', 'api search', 'ops'],
+        'readOnlyHint' => true,
+        'destructiveHint' => false,
+    ],
+    'magnolia_query_search_log' => [
+        'category' => 'plugins',
+        'description' => 'Query search_log for Traffic/ops (user, America/Chicago month_year).',
+        'synonyms' => ['search', 'log', 'traffic', 'ops'],
+        'readOnlyHint' => true,
+        'destructiveHint' => false,
+    ],
 ];
