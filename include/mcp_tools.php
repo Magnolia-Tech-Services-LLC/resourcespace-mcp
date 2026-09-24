@@ -173,6 +173,25 @@ function mcp_tool_defs(): array
                 'resource_refs' => ['type' => 'array', 'items' => ['type' => 'integer']],
             ], ['action']),
         ],
+        'rs_query_activity_log' => [
+            'description' => 'Query activity_log for Traffic/ops (user, note_like, America/Chicago month_year)',
+            'annotations' => mcp_hint_read(),
+            'inputSchema' => mcp_tool_schema([
+                'user' => ['type' => 'integer'],
+                'note_like' => ['type' => 'string'],
+                'month_year' => ['type' => 'string', 'description' => 'YYYY-MM America/Chicago'],
+                'limit' => ['type' => 'integer', 'default' => 100],
+            ], []),
+        ],
+        'rs_query_search_log' => [
+            'description' => 'Query search_log for Traffic/ops (America/Chicago month_year)',
+            'annotations' => mcp_hint_read(),
+            'inputSchema' => mcp_tool_schema([
+                'user' => ['type' => 'integer'],
+                'month_year' => ['type' => 'string', 'description' => 'YYYY-MM America/Chicago'],
+                'limit' => ['type' => 'integer', 'default' => 100],
+            ], []),
+        ],
         'rs_check_permissions' => [
             'description' => 'Check current user permissions',
             'annotations' => mcp_hint_read(),
@@ -305,6 +324,35 @@ function mcp_handle_tool(string $name, array $args, array $catalog, array $allow
                 $out['get_edit_access'] = mcp_tool_decode_text($edit['text']);
             }
             return mcp_tool_json($out);
+
+        case 'rs_query_activity_log':
+            $params = [];
+            if (array_key_exists('user', $args)) {
+                $params['user'] = $args['user'];
+            }
+            if (isset($args['note_like']) && $args['note_like'] !== '') {
+                $params['note_like'] = (string) $args['note_like'];
+            }
+            if (isset($args['month_year']) && $args['month_year'] !== '') {
+                $params['month_year'] = (string) $args['month_year'];
+            }
+            if (array_key_exists('limit', $args)) {
+                $params['limit'] = $args['limit'];
+            }
+            return mcp_execute_permitted('magnolia_query_activity_log', $params, $catalog, $allowlist);
+
+        case 'rs_query_search_log':
+            $params = [];
+            if (array_key_exists('user', $args)) {
+                $params['user'] = $args['user'];
+            }
+            if (isset($args['month_year']) && $args['month_year'] !== '') {
+                $params['month_year'] = (string) $args['month_year'];
+            }
+            if (array_key_exists('limit', $args)) {
+                $params['limit'] = $args['limit'];
+            }
+            return mcp_execute_permitted('magnolia_query_search_log', $params, $catalog, $allowlist);
 
         default:
             return ['isError' => true, 'text' => 'Unknown tool'];
