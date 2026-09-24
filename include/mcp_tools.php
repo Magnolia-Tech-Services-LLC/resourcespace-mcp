@@ -174,7 +174,7 @@ function mcp_tool_defs(): array
             ], ['action']),
         ],
         'rs_query_activity_log' => [
-            'description' => 'Query activity_log for Traffic/ops (note_like, America/Chicago month_year)',
+            'description' => 'Query activity_log for Traffic/ops (user, note_like, America/Chicago month_year)',
             'annotations' => mcp_hint_read(),
             'inputSchema' => mcp_tool_schema([
                 'user' => ['type' => 'integer'],
@@ -327,7 +327,7 @@ function mcp_handle_tool(string $name, array $args, array $catalog, array $allow
 
         case 'rs_query_activity_log':
             $params = [];
-            if (isset($args['user']) && $args['user'] !== '') {
+            if (array_key_exists('user', $args)) {
                 $params['user'] = $args['user'];
             }
             if (isset($args['note_like']) && $args['note_like'] !== '') {
@@ -343,7 +343,7 @@ function mcp_handle_tool(string $name, array $args, array $catalog, array $allow
 
         case 'rs_query_search_log':
             $params = [];
-            if (isset($args['user']) && $args['user'] !== '') {
+            if (array_key_exists('user', $args)) {
                 $params['user'] = $args['user'];
             }
             if (isset($args['month_year']) && $args['month_year'] !== '') {
