@@ -9,8 +9,8 @@ Supported: ResourceSpace 10.7 and 11, PHP 8.1+. HTTPS required.
 1. Copy this directory to ResourceSpace's `plugins/resourcespace_mcp/` (underscore, not the GitHub hyphenated clone name).
 2. Enable **Remote APIs** in ResourceSpace config (`$enable_remote_apis`).
 3. Activate **MCP Server** on the plugin page and open its setup page.
-4. Serve the site over HTTPS. If PHP sees HTTP behind a reverse proxy, enable **Behind a reverse proxy**.
-5. Add the Apache or nginx snippet from the setup page to the **vhost** (many installs have `AllowOverride None`, so `.htaccess` will not apply). Apache needs `CGIPassAuth On` so `Authorization` reaches PHP. Claude/ChatGPT/Grok OAuth needs this rewrite. The ResourceSpace host must be able to fetch the connector's `https://` client ID metadata URL (for Claude, `claude.ai`).
+4. Serve the site over HTTPS. If PHP sees HTTP behind a reverse proxy, open **Web server** on the setup page and enable **Behind a reverse proxy**.
+5. Open **Web server** on the setup page and add the Apache or nginx snippet to the **vhost** (many installs have `AllowOverride None`, so `.htaccess` will not apply). Apache needs `CGIPassAuth On` so `Authorization` reaches PHP. Claude/ChatGPT/Grok OAuth needs this rewrite. The ResourceSpace host must be able to fetch the connector's `https://` client ID metadata URL (for Claude, `claude.ai`).
 
 ResourceSpace in a URL subdirectory (for example `https://example.com/rs`) is not supported for ChatGPT/Grok origin `/.well-known/` discovery. Use a host whose `$baseurl` has no path.
 
