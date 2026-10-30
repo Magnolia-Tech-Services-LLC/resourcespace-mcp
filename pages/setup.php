@@ -61,7 +61,7 @@ $page_def[] = config_add_html('</details>');
 $https_on = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && strtolower((string) $_SERVER['HTTPS']) !== 'off';
 include_once dirname(__DIR__) . '/include/mcp_jsonrpc.php';
 $trust_for_warning = $resourcespace_mcp_trust_proxy;
-if (getval('save', '') !== '' || getval('submit', '') !== '') {
+if ((getval('save', '') !== '' || getval('submit', '') !== '') && enforcePostRequest(false)) {
     $trust_for_warning = getval('resourcespace_mcp_trust_proxy', $resourcespace_mcp_trust_proxy);
 }
 $proxy_warning = !$https_on && mcp_forwarded_https($_SERVER) && empty($trust_for_warning);
