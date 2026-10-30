@@ -64,6 +64,10 @@ mcp_test_expect(str_contains($setup_src, 'mcp_oauth_revoke_all'), 'setup calls m
 mcp_test_expect(str_contains($setup_src, 'resourcespace_mcp_oauth_revoke_confirm'), 'setup confirms before revoke');
 mcp_test_expect(str_contains($setup_src, 'pages/help.php'), 'setup links to help page');
 mcp_test_expect(str_contains($setup_src, 'resourcespace_mcp_trust_proxy_needed'), 'setup warns when proxy HTTPS is untrusted');
+mcp_test_expect(substr_count($setup_src, 'config_add_html(resourcespace_mcp_setup_details(') === 3, 'setup folds three optional sections');
+mcp_test_expect(substr_count($setup_src, "'</details>'") === 3, 'setup closes each folded section');
+mcp_test_expect(str_contains($setup_src, 'resourcespace_mcp_server_setup'), 'web server section label exists');
+mcp_test_expect(str_contains($setup_src, 'event.preventDefault()'), 'connector URL enter does not submit the form');
 mcp_test_expect(!str_contains($setup_src, '[R=301,L]'), 'setup Apache does not 301 /mcp/');
 mcp_test_expect(str_contains($setup_src, '$mcp_pub . \'$\'') && str_contains($setup_src, '$mcp_page . \' [L]\''), 'setup Apache rewrites /mcp to plugin mcp.php');
 mcp_test_expect(!str_contains($setup_src, '$mcp_pub . \'/ {\''), 'setup nginx has no /mcp/ location');
